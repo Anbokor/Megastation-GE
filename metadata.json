@@ -1,0 +1,8 @@
+{
+  "name": "Megastation Shop",
+  "description": "Tienda oficial de celulares, accesorios y servicio técnico en Argentina. Control de stock multi-sucursal y gestión avanzada.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
