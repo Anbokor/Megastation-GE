@@ -110,8 +110,36 @@ async function runTests() {
   const updatedTestProd = updatedProds.find((p: any) => p.id === testProd.id);
   console.log('9. Stock decremented in DB:', updatedTestProd.stockByStore.belgrano === initialStock - 1 ? '✅ PASS' : '❌ FAIL');
 
+  // 10. Product Creation Test (Admin only)
+  const newProductRes: any = await fetch(`${baseUrl}/products`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${adminToken}`,
+    },
+    body: JSON.stringify({
+      name: 'NVIDIA GeForce RTX 5080 Gaming OC 16GB',
+      brand: 'Gigabyte',
+      category: 'gpu',
+      description: 'Arquitectura Blackwell, 16GB GDDR7, DLSS 4',
+      price: 1850000,
+      costPrice: 1350000,
+      marginPercent: 37,
+      stockByStore: { belgrano: 3, colegiales: 2, central: 5 },
+    }),
+  }).then((r) => r.json());
+  console.log('10. Admin created new product:', Boolean(newProductRes.id && newProductRes.barcode && newProductRes.stockByStore.belgrano === 3) ? '✅ PASS' : '❌ FAIL');
+  console.log('    New product ID:', newProductRes.id, 'EAN-13 Barcode:', newProductRes.barcode);
+
+  // 11. Inventory Audit Transactions Test
+  const txListRes: any = await fetch(`${baseUrl}/inventory/transactions`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+  }).then((r) => r.json());
+  console.log('11. Inventory transactions retrieved:', Array.isArray(txListRes) && txListRes.length > 0 ? '✅ PASS' : '❌ FAIL');
+  console.log('    Total audit transactions logged in SQLite:', txListRes.length);
+
   server.close(() => {
-    console.log('\n🎉 ALL 9 TEST SUITES COMPLETED SUCCESSFULLY!');
+    console.log('\n🎉 ALL 11 TEST SUITES COMPLETED SUCCESSFULLY!');
     process.exit(0);
   });
 }

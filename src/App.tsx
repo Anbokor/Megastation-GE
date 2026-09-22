@@ -30,7 +30,10 @@ import {
   apiAdjustStock, 
   apiUpdateOrderStatus, 
   apiGetMe,
-  setAuthToken 
+  setAuthToken,
+  apiCreateProduct,
+  apiUpdateProduct,
+  apiDeleteProduct
 } from './api/client';
 
 // Components
@@ -296,6 +299,37 @@ export default function App() {
     }
   };
 
+  // --- Product Management (Admin) ---
+  const handleCreateProduct = async (productData: any) => {
+    try {
+      await apiCreateProduct(productData);
+      await refreshData();
+    } catch (e: any) {
+      console.error('Error creating product:', e);
+      throw e;
+    }
+  };
+
+  const handleUpdateProduct = async (id: string, productData: any) => {
+    try {
+      await apiUpdateProduct(id, productData);
+      await refreshData();
+    } catch (e: any) {
+      console.error('Error updating product:', e);
+      throw e;
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      await apiDeleteProduct(id);
+      await refreshData();
+    } catch (e: any) {
+      console.error('Error deleting product:', e);
+      throw e;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col selection:bg-[#10A4C7] selection:text-white">
       {/* Header with auth menu, branch picker, search, barcode scan, and cart */}
@@ -492,6 +526,9 @@ export default function App() {
             onTransferStock={handleTransferStock}
             onAddInboundStock={handleAddInboundStock}
             onUpdateOrderStatus={handleUpdateOrderStatus}
+            onCreateProduct={handleCreateProduct}
+            onUpdateProduct={handleUpdateProduct}
+            onDeleteProduct={handleDeleteProduct}
             onOpenBrandbookModal={() => setIsBrandbookOpen(true)}
           />
         </React.Suspense>

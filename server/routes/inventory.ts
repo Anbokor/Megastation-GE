@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { db, sqliteDb } from '../db/index.ts';
 import { products, branchStock, inventoryTransactions } from '../db/schema.ts';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { requireAuth, requireRole, AuthenticatedRequest } from '../middleware/auth.ts';
 
 export const inventoryRouter = Router();
@@ -9,6 +9,22 @@ export const inventoryRouter = Router();
 // Require admin or seller for all inventory operations
 inventoryRouter.use(requireAuth);
 inventoryRouter.use(requireRole('admin', 'seller'));
+
+// GET /api/inventory/transactions - Audit history of stock movements
+inventoryRouter.get('/transactions', async (_req: AuthenticatedRequest, res): Promise<void> => {
+  try {
+    const list = db
+      .select()
+      .from(inventoryTransactions)
+      .orderBy(desc(inventoryTransactions.createdAt))
+      .limit(100)
+      .all();
+    res.json(list);
+  } catch (error) {
+    console.error('Error fetching inventory transactions:', error);
+    res.status(500).json({ error: 'Error al obtener transacciones de inventario.' });
+  }
+});
 
 // POST /api/inventory/inbound (Ingreso de mercadería / Remito)
 inventoryRouter.post('/inbound', async (req: AuthenticatedRequest, res): Promise<void> => {
@@ -20,6 +36,9 @@ inventoryRouter.post('/inbound', async (req: AuthenticatedRequest, res): Promise
       desiredMarginPercent,
       finalPrice,
       targetBranch,
+      supplierName,
+      invoiceNumber,
+      note,
     } = req.body;
 
     if (!productId || !quantity || !targetBranch) {
@@ -36,6 +55,9 @@ inventoryRouter.post('/inbound', async (req: AuthenticatedRequest, res): Promise
     const qtyNumber = Number(quantity);
     const finalPriceNumber = Number(finalPrice) || prod.price;
     const costPriceNumber = Number(costPrice) || prod.costPrice;
+    const supplierTag = supplierName?.trim() ? ` [Proveedor: ${supplierName.trim()}]` : '';
+    const invoiceTag = invoiceNumber?.trim() ? ` [Remito N°: ${invoiceNumber.trim()}]` : '';
+    const noteText = `${invoiceTag}${supplierTag} Ingreso a ${targetBranch.toUpperCase()}${note ? ` - ${note}` : ''}`.trim();
 
     // Run in atomic transaction
     sqliteDb.transaction(() => {
@@ -82,7 +104,7 @@ inventoryRouter.post('/inbound', async (req: AuthenticatedRequest, res): Promise
           quantity: qtyNumber,
           costPrice: costPriceNumber,
           finalPrice: finalPriceNumber,
-          note: `Ingreso de mercadería por remito / factura a sucursal ${targetBranch.toUpperCase()}`,
+          note: noteText,
           createdAt: new Date().toISOString(),
         })
         .run();

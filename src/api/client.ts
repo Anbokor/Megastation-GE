@@ -161,3 +161,72 @@ export async function apiCreatePaymentPreference(orderId: string): Promise<{
     body: JSON.stringify({ orderId }),
   });
 }
+
+// --- Product CRUD API ---
+export async function apiCreateProduct(productData: {
+  name: string;
+  brand: string;
+  category: string;
+  description: string;
+  price: number;
+  costPrice?: number;
+  marginPercent?: number;
+  image?: string;
+  barcode?: string;
+  specs?: Record<string, string>;
+  tags?: string[];
+  stockByStore?: { belgrano?: number; colegiales?: number; central?: number };
+}): Promise<Product> {
+  return apiFetch<Product>('/api/products', {
+    method: 'POST',
+    body: JSON.stringify(productData),
+  });
+}
+
+export async function apiUpdateProduct(
+  id: string,
+  productData: Partial<{
+    name: string;
+    brand: string;
+    category: string;
+    description: string;
+    price: number;
+    costPrice: number;
+    marginPercent: number;
+    image: string;
+    barcode: string;
+    specs: Record<string, string>;
+    tags: string[];
+    stockByStore: { belgrano?: number; colegiales?: number; central?: number };
+  }>
+): Promise<Product> {
+  return apiFetch<Product>(`/api/products/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(productData),
+  });
+}
+
+export async function apiDeleteProduct(id: string): Promise<void> {
+  await apiFetch(`/api/products/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export interface InventoryTransaction {
+  id: string;
+  type: 'inbound' | 'transfer' | 'order_deduction' | 'adjustment';
+  productId: string;
+  productName: string;
+  fromBranch?: string | null;
+  toBranch?: string | null;
+  quantity: number;
+  costPrice?: number | null;
+  finalPrice?: number | null;
+  note?: string | null;
+  createdAt: string;
+}
+
+export async function apiGetInventoryTransactions(): Promise<InventoryTransaction[]> {
+  return apiFetch<InventoryTransaction[]>('/api/inventory/transactions');
+}
+

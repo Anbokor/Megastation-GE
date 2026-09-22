@@ -10,11 +10,11 @@ export interface BrandLogoProps {
 }
 
 const SIZE_CLASSES = {
-  xs: 'h-7 max-h-7',
-  sm: 'h-10 max-h-10',
-  md: 'h-12 max-h-12',
-  lg: 'h-16 max-h-16',
-  xl: 'h-24 max-h-24',
+  xs: 'h-8 max-h-8',
+  sm: 'h-12 max-h-12',
+  md: 'h-14 sm:h-16 max-h-16',
+  lg: 'h-16 sm:h-20 max-h-20',
+  xl: 'h-24 sm:h-32 max-h-32',
 };
 
 /**

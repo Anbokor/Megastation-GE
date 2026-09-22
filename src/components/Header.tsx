@@ -172,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="Megastation Shop - Inicio"
             aria-label="Ir a inicio de Megastation Shop"
           >
-            <BrandLogo size="md" layout="horizontal" showSlogan={false} />
+            <BrandLogo size="lg" layout="horizontal" showSlogan={false} />
           </button>
 
           {/* Search bar with instant barcode scanner trigger */}
@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Buscar celular, funda, cargador o código de barras (EAN-13)..."
+                placeholder="Buscar placas de video, procesadores, periféricos o código de barras (EAN-13)..."
                 className="w-full pl-10 pr-24 py-2.5 bg-slate-100/90 hover:bg-slate-100 focus:bg-white border border-slate-200 focus:border-[#10A4C7] focus:ring-2 focus:ring-[#10A4C7]/20 rounded-xl text-sm transition-all placeholder:text-slate-400 text-slate-800"
               />
               <button
