@@ -55,6 +55,22 @@ async function runTests() {
   });
   console.log('5. Insufficient stock rejected (400):', badOrderRes.status === 400 ? '✅ PASS' : '❌ FAIL');
 
+  // Pick a product with available stock in Belgrano, or replenish stock if needed
+  let testProd = products.find((p: any) => p.stockByStore.belgrano > 0);
+  if (!testProd) {
+    await fetch(`${baseUrl}/inventory/adjust`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({ productId: sampleProd.id, branchId: 'belgrano', newQuantity: 10 }),
+    });
+    const refreshedProds: any = await fetch(`${baseUrl}/products`).then((r) => r.json());
+    testProd = refreshedProds.find((p: any) => p.id === sampleProd.id);
+  }
+  const initialStock = testProd.stockByStore.belgrano;
+
   // 6. Order creation - Valid order
   const validOrder: any = await fetch(`${baseUrl}/orders`, {
     method: 'POST',
@@ -67,7 +83,7 @@ async function runTests() {
         dni: '38123456',
         address: { street: 'Av. Cabildo', number: '2000', city: 'CABA', province: 'Buenos Aires', postalCode: '1428' },
       },
-      items: [{ productId: sampleProd.id, quantity: 1 }],
+      items: [{ productId: testProd.id, quantity: 1 }],
       deliveryMethod: 'pickup',
       branchId: 'belgrano',
       paymentMethod: 'mercadopago',
@@ -91,8 +107,8 @@ async function runTests() {
 
   // 9. Stock verification - Ensure stock was decremented in DB
   const updatedProds: any = await fetch(`${baseUrl}/products`).then((r) => r.json());
-  const updatedSample = updatedProds.find((p: any) => p.id === sampleProd.id);
-  console.log('9. Stock decremented in DB:', updatedSample.stockByStore.belgrano === sampleProd.stockByStore.belgrano - 1 ? '✅ PASS' : '❌ FAIL');
+  const updatedTestProd = updatedProds.find((p: any) => p.id === testProd.id);
+  console.log('9. Stock decremented in DB:', updatedTestProd.stockByStore.belgrano === initialStock - 1 ? '✅ PASS' : '❌ FAIL');
 
   server.close(() => {
     console.log('\n🎉 ALL 9 TEST SUITES COMPLETED SUCCESSFULLY!');

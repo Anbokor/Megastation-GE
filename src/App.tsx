@@ -65,6 +65,7 @@ export default function App() {
   const [branches, setBranches] = React.useState<StoreBranch[]>(INITIAL_BRANCHES);
   const [orders, setOrders] = React.useState<Order[]>(INITIAL_ORDERS);
   const [paymentBanner, setPaymentBanner] = React.useState<{ status: string; orderId: string } | null>(null);
+  const [isBackendConnected, setIsBackendConnected] = React.useState<boolean>(false);
 
   const [cart, setCart] = React.useState<CartItem[]>(() => {
     const saved = localStorage.getItem('mgst_cart');
@@ -96,12 +97,14 @@ export default function App() {
       ]);
       if (prods && prods.length > 0) setProducts(prods);
       if (brs && brs.length > 0) setBranches(brs);
+      setIsBackendConnected(true);
 
       try {
         const ords = await apiGetOrders();
         if (ords) setOrders(ords);
       } catch {}
     } catch (e) {
+      setIsBackendConnected(false);
       console.warn('Backend not ready or running offline mode, using cached data.', e);
     }
   }, []);
@@ -314,6 +317,7 @@ export default function App() {
         onOpenOrderTracker={() => setIsOrderTrackerOpen(true)}
         onOpenStores={() => setIsPhysicalStoresOpen(true)}
         onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
+        isBackendConnected={isBackendConnected}
       />
 
       {/* Payment Notification Banner (e.g. redirected from Mercado Pago) */}
