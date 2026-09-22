@@ -28,7 +28,7 @@ export const Footer: React.FC<FooterProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Col 1 & 2: Brand & Identity */}
           <div className="lg:col-span-2 space-y-4">
-            <BrandLogo size="md" variant="color" showSlogan={false} />
+            <BrandLogo size="md" variant="white" showSlogan={false} />
 
             <p className="text-xs text-slate-300 max-w-sm leading-relaxed mt-3">
               Líderes en telefonía celular, servicio técnico especializado y accesorios de vanguardia.

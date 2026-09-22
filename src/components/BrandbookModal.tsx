@@ -157,28 +157,49 @@ export const BrandbookModal: React.FC<BrandbookModalProps> = ({ isOpen, onClose 
 
           {/* Logo Versions and Construction */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                 <Layers className="w-4 h-4 text-[#10A4C7]" />
                 Logotipo Oficial & Construcción Visual
               </h3>
-              <a
-                href="/logo.svg"
-                download="MEGASTATION-Logo-Oficial.svg"
-                className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#006899] hover:text-[#10A4C7] bg-sky-50 px-3 py-1.5 rounded-lg border border-sky-200 transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Descargar SVG Oficial
-              </a>
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href="/logo-color.png"
+                  download="MEGASTATION-Logo-Color-Oficial.png"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#006899] hover:text-[#10A4C7] bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-200 transition-colors"
+                  title="Descargar Logo Color Oficial"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Color PNG
+                </a>
+                <a
+                  href="/logo-white.png"
+                  download="MEGASTATION-Logo-Blanco-Oficial.png"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-300 transition-colors"
+                  title="Descargar Logo Blanco Negativo"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Blanco PNG
+                </a>
+                <a
+                  href="/logo-black.png"
+                  download="MEGASTATION-Logo-Monocromo-Oficial.png"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-300 transition-colors"
+                  title="Descargar Logo Negro Monocromo"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Negro PNG
+                </a>
+              </div>
             </div>
 
             {/* Main Official Master Logo Showcase */}
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 shadow-xs min-w-[220px]">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  Diseño Oficial (MGST - Logo- Color)
+                  Diseño Oficial (MGST - Master Color)
                 </span>
-                <BrandLogo size="xl" layout="stacked" variant="color" />
+                <BrandLogo size="xl" layout="stacked" variant="color" useMasterSquare />
               </div>
 
               <div className="space-y-3 text-xs text-slate-600 max-w-md">
@@ -206,30 +227,30 @@ export const BrandbookModal: React.FC<BrandbookModalProps> = ({ isOpen, onClose 
             {/* Application Variants Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
               {/* Horizontal / Web Positive */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-3 shadow-2xs">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-between text-center space-y-3 shadow-2xs">
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Versión Horizontal (Cabecera)</span>
-                <div className="py-2">
+                <div className="py-2 flex items-center justify-center min-h-[60px]">
                   <BrandLogo size="md" layout="horizontal" variant="color" />
                 </div>
-                <span className="text-[10px] text-slate-500">Cabeceras web, barras de navegación y documentos</span>
+                <span className="text-[10px] text-slate-500">Cabeceras web, barras de navegación y documentos claros</span>
               </div>
 
               {/* Dark negative */}
-              <div className="bg-gradient-to-br from-[#006899] to-[#13007C] border border-sky-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-3 shadow-2xs">
-                <span className="text-[10px] font-bold text-sky-200 uppercase">Versión Negativa</span>
-                <div className="py-2">
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-between text-center space-y-3 shadow-2xs">
+                <span className="text-[10px] font-bold text-sky-200 uppercase">Versión Negativa Oficial</span>
+                <div className="py-2 flex items-center justify-center min-h-[60px]">
                   <BrandLogo size="md" layout="horizontal" variant="white" />
                 </div>
-                <span className="text-[10px] text-sky-200">Marquesinas de locales, uniformes y fondos oscuros</span>
+                <span className="text-[10px] text-slate-400">Pie de página (Footer), marquesinas y fondos oscuros</span>
               </div>
 
               {/* Monochrome */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-3 shadow-2xs">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Versión Monocromática</span>
-                <div className="py-2">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-between text-center space-y-3 shadow-2xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Versión Monocromática Oficial</span>
+                <div className="py-2 flex items-center justify-center min-h-[60px]">
                   <BrandLogo size="md" layout="horizontal" variant="monochrome" />
                 </div>
-                <span className="text-[10px] text-slate-500">Tickets fiscales térmicos y etiquetas de código de barras</span>
+                <span className="text-[10px] text-slate-500">Tickets fiscales térmicos POS y remitos de entrega</span>
               </div>
             </div>
           </div>

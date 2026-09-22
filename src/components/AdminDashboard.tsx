@@ -40,6 +40,7 @@ import {
 import { CATEGORIES } from '../data/initialData';
 import { formatCurrencyARS, generateArgentineBarcode, formatArgentineDate } from '../utils/formatters';
 import { BarcodeVisual } from './BarcodeVisual';
+import { BrandLogo } from './BrandLogo';
 import { apiGetInventoryTransactions, InventoryTransaction } from '../api/client';
 
 interface AdminDashboardProps {
@@ -407,7 +408,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <BrandLogo size="sm" variant="white" layout="horizontal" className="hidden md:inline-flex pr-3 border-r border-slate-700" />
             {isAdmin && onOpenBrandbookModal && (
               <button
                 type="button"

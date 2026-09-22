@@ -1,26 +1,36 @@
 import React from 'react';
+import { EMBEDDED_OFFICIAL_LOGOS, LogoVariant } from '../utils/embeddedLogos';
 
 export interface BrandLogoProps {
   className?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  variant?: 'color' | 'white' | 'monochrome';
+  variant?: LogoVariant;
   layout?: 'horizontal' | 'stacked';
   showSlogan?: boolean;
   iconOnly?: boolean;
+  useMasterSquare?: boolean;
 }
 
 const SIZE_CLASSES = {
-  xs: 'h-8 max-h-8',
-  sm: 'h-12 max-h-12',
-  md: 'h-14 sm:h-16 max-h-16',
-  lg: 'h-16 sm:h-20 max-h-20',
-  xl: 'h-24 sm:h-32 max-h-32',
+  xs: 'h-6 max-h-6',
+  sm: 'h-8 max-h-8',
+  md: 'h-11 sm:h-12 max-h-12',
+  lg: 'h-14 sm:h-16 max-h-16',
+  xl: 'h-20 sm:h-24 max-h-24',
+};
+
+const ICON_SIZE_CLASSES = {
+  xs: 'h-6 w-auto max-h-6',
+  sm: 'h-8 w-auto max-h-8',
+  md: 'h-10 w-auto max-h-10',
+  lg: 'h-12 w-auto max-h-12',
+  xl: 'h-16 w-auto max-h-16',
 };
 
 /**
  * Official Brand Logo for MEGA STATION
- * Renders authentic logo assets directly as static images without modifying,
- * re-drawing, or distorting the brand's original graphics.
+ * Renders authentic brand assets (Full Color, White Negative, Monochrome Black)
+ * with pixel-perfect contrast and responsive visual hierarchy.
  */
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   className = '',
@@ -29,27 +39,38 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   layout = 'horizontal',
   showSlogan = false,
   iconOnly = false,
+  useMasterSquare = false,
 }) => {
-  // Always use /logo.png as requested by the user
-  const logoSrc = '/logo.png';
+  // Select authentic asset path based on variant, icon mode, and canvas type
+  const logoSrc = iconOnly
+    ? EMBEDDED_OFFICIAL_LOGOS.icon[variant]
+    : useMasterSquare
+    ? EMBEDDED_OFFICIAL_LOGOS.master[variant]
+    : EMBEDDED_OFFICIAL_LOGOS.tight[variant];
 
-  const heightClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
+  const heightClass = iconOnly 
+    ? (ICON_SIZE_CLASSES[size] || ICON_SIZE_CLASSES.md)
+    : (SIZE_CLASSES[size] || SIZE_CLASSES.md);
 
-  // Slogan text styling according to variant contrast
+  // Slogan text styling according to background contrast variant
   const sloganClass = 
     variant === 'white' 
       ? 'text-[#48FEC1]' 
       : variant === 'monochrome' 
-      ? 'text-slate-500' 
+      ? 'text-slate-700' 
       : 'text-[#005A9C]';
+
+  const altText = iconOnly
+    ? 'MEGA STATION Isotipo mG'
+    : `MEGA STATION Logo Oficial (${variant === 'white' ? 'Negativo' : variant === 'monochrome' ? 'Monocromo' : 'Color'})`;
 
   if (iconOnly) {
     return (
-      <div className={`inline-flex items-center justify-center select-none ${className}`}>
+      <div className={`inline-flex items-center justify-center select-none flex-shrink-0 ${className}`}>
         <img
           src={logoSrc}
-          alt="MEGA STATION Logo"
-          className={`${heightClass} w-auto object-contain`}
+          alt={altText}
+          className={`${heightClass} object-contain transition-transform`}
           loading="eager"
         />
       </div>
@@ -61,12 +82,12 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       <div className={`inline-flex flex-col items-center justify-center select-none text-center ${className}`}>
         <img
           src={logoSrc}
-          alt="MEGA STATION Logo"
-          className={`${heightClass} w-auto object-contain`}
+          alt={altText}
+          className={`${heightClass} w-auto object-contain transition-transform`}
           loading="eager"
         />
         {showSlogan && (
-          <span className={`text-[10px] tracking-wider uppercase font-semibold mt-1.5 ${sloganClass}`}>
+          <span className={`text-[10px] sm:text-[11px] tracking-wider uppercase font-bold mt-1.5 ${sloganClass}`}>
             Somos como el agua · Celulares y Accesorios
           </span>
         )}
@@ -76,11 +97,11 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   // Horizontal layout (default)
   return (
-    <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
+    <div className={`inline-flex items-center gap-3 select-none ${className}`}>
       <img
         src={logoSrc}
-        alt="MEGA STATION Logo"
-        className={`${heightClass} w-auto object-contain`}
+        alt={altText}
+        className={`${heightClass} w-auto object-contain transition-transform`}
         loading="eager"
       />
       {showSlogan && (
