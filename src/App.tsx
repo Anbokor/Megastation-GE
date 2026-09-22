@@ -32,7 +32,6 @@ import { OrderTrackerModal } from './components/OrderTrackerModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { PhysicalStoresModal } from './components/PhysicalStoresModal';
 import { BrandbookModal } from './components/BrandbookModal';
-import { LogoManagerModal } from './components/LogoManagerModal';
 import { BarcodeScannerModal } from './components/BarcodeScannerModal';
 import { LoginModal } from './components/LoginModal';
 import { Footer } from './components/Footer';
@@ -119,7 +118,6 @@ export default function App() {
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = React.useState<boolean>(false);
   const [isPhysicalStoresOpen, setIsPhysicalStoresOpen] = React.useState<boolean>(false);
   const [isBrandbookOpen, setIsBrandbookOpen] = React.useState<boolean>(false);
-  const [isLogoManagerOpen, setIsLogoManagerOpen] = React.useState<boolean>(false);
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = React.useState<boolean>(false);
 
   // Authentication Handlers
@@ -317,7 +315,6 @@ export default function App() {
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onLogout={handleLogout}
         onOpenAdminDashboard={handleOpenAdminDashboard}
-        onOpenLogoManager={() => setIsLogoManagerOpen(true)}
         cartCount={cartCount}
         cartTotal={cartTotal}
         onOpenCart={() => setIsCartOpen(true)}
@@ -421,14 +418,6 @@ export default function App() {
         />
       )}
 
-      {/* Dedicated Logo Manager Modal */}
-      {isLogoManagerOpen && (
-        <LogoManagerModal
-          isOpen={isLogoManagerOpen}
-          onClose={() => setIsLogoManagerOpen(false)}
-        />
-      )}
-
       {/* Barcode Scanner Modal */}
       {isBarcodeScannerOpen && (
         <BarcodeScannerModal
@@ -471,7 +460,6 @@ export default function App() {
       <Footer
         onOpenStores={() => setIsPhysicalStoresOpen(true)}
         onOpenAdmin={handleOpenAdminDashboard}
-        onOpenLogoManager={() => setIsLogoManagerOpen(true)}
       />
     </div>
   );

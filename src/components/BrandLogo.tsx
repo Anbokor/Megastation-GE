@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { getCustomLogo, subscribeToLogoChanges } from '../utils/logoStorage';
-import { EMBEDDED_OFFICIAL_LOGOS } from '../utils/embeddedLogos';
+import React from 'react';
 
 export interface BrandLogoProps {
   className?: string;
@@ -12,11 +10,11 @@ export interface BrandLogoProps {
 }
 
 const SIZE_CLASSES = {
-  xs: 'h-6 max-h-6',
-  sm: 'h-8 max-h-8',
-  md: 'h-10 max-h-10',
-  lg: 'h-14 max-h-14',
-  xl: 'h-20 max-h-20',
+  xs: 'h-7 max-h-7',
+  sm: 'h-10 max-h-10',
+  md: 'h-12 max-h-12',
+  lg: 'h-16 max-h-16',
+  xl: 'h-24 max-h-24',
 };
 
 /**
@@ -32,20 +30,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   showSlogan = false,
   iconOnly = false,
 }) => {
-  // Custom user logo from storage (if admin uploaded custom file)
-  const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(() => getCustomLogo(variant));
-
-  useEffect(() => {
-    const updateLogo = () => {
-      setCustomLogoUrl(getCustomLogo(variant));
-    };
-    updateLogo();
-    const unsubscribe = subscribeToLogoChanges(updateLogo);
-    return unsubscribe;
-  }, [variant]);
-
-  // Determine active logo source: custom logo or official brand asset embedded directly from original files
-  const logoSrc = customLogoUrl || EMBEDDED_OFFICIAL_LOGOS[variant] || EMBEDDED_OFFICIAL_LOGOS.color;
+  // Always use /logo.png as requested by the user
+  const logoSrc = '/logo.png';
 
   const heightClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
 

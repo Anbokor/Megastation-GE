@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React from 'react';
 import { 
   X, 
   Sparkles, 
@@ -7,15 +7,9 @@ import {
   Layers, 
   Check, 
   Copy,
-  ExternalLink,
-  Upload,
-  Image as ImageIcon,
-  Trash2,
-  CheckCircle2,
-  AlertTriangle
+  ExternalLink
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
-import { getCustomLogo, setCustomLogo, removeCustomLogo, subscribeToLogoChanges } from '../utils/logoStorage';
 
 interface BrandbookModalProps {
   isOpen: boolean;
@@ -24,18 +18,6 @@ interface BrandbookModalProps {
 
 export const BrandbookModal: React.FC<BrandbookModalProps> = ({ isOpen, onClose }) => {
   const [copiedColor, setCopiedColor] = React.useState<string | null>(null);
-  const [activeLogo, setActiveLogo] = useState<string | null>(() => getCustomLogo('color'));
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    const unsub = subscribeToLogoChanges(() => {
-      setActiveLogo(getCustomLogo('color'));
-    });
-    return unsub;
-  }, []);
 
   if (!isOpen) return null;
 
@@ -43,8 +25,9 @@ export const BrandbookModal: React.FC<BrandbookModalProps> = ({ isOpen, onClose 
     { name: 'Cyan Principal', hex: '#10A4C7', pantone: 'Pantone 312 C', role: 'Primario Marca' },
     { name: 'Deep Ocean Blue', hex: '#006899', pantone: 'Pantone 301 C', role: 'Secundario Primario' },
     { name: 'Deep Violet', hex: '#13007C', pantone: 'Pantone 2745 C', role: 'Acento Nocturno' },
-    { name: 'Mint Tech', hex: '#48FEC1', pantone: 'Pantone 3375 C', role: 'Éxito & Destacados' },
-    { name: 'Solar Amber', hex: '#FFB000', pantone: 'Pantone 1235 C', role: 'Llamados a Acción' },
+    { name: 'Aqua Mentha', hex: '#48FEC1', pantone: 'Pantone 354 C', role: 'Acento Brillante / Call to Action' },
+    { name: 'Pure White', hex: '#FFFFFF', pantone: 'Blanco Neutro', role: 'Fondo & Contraste' },
+    { name: 'Dark Slate', hex: '#0F172A', pantone: 'Negro Institucional', role: 'Tipografía & Estructura' },
   ];
 
   const handleCopy = (hex: string) => {
@@ -53,142 +36,83 @@ export const BrandbookModal: React.FC<BrandbookModalProps> = ({ isOpen, onClose 
     setTimeout(() => setCopiedColor(null), 1500);
   };
 
-  const handleFileUpload = (file: File) => {
-    setUploadError(null);
-    setUploadSuccess(false);
-
-    // Validate MIME type
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Formato inválido. Por favor selecciona una imagen (PNG, JPG, SVG o WEBP).');
-      return;
-    }
-
-    // Validate size (max 3MB)
-    if (file.size > 3 * 1024 * 1024) {
-      setUploadError('El archivo es demasiado grande (máximo 3 MB para almacenamiento local seguro).');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      if (dataUrl) {
-        const success = setCustomLogo(dataUrl);
-        if (success) {
-          setUploadSuccess(true);
-          setTimeout(() => setUploadSuccess(false), 3000);
-        } else {
-          setUploadError('No se pudo guardar la imagen. Verifica que sea un archivo de imagen válido.');
-        }
-      }
-    };
-    reader.onerror = () => {
-      setUploadError('Error al leer el archivo.');
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileUpload(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFileUpload(e.target.files[0]);
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto">
       <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden relative max-h-[92vh] flex flex-col my-auto">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center p-1">
-              <BrandLogo iconOnly size="xs" variant="white" />
+            <div className="w-10 h-10 rounded-2xl bg-[#10A4C7]/20 border border-[#10A4C7]/40 flex items-center justify-center text-[#48FEC1]">
+              <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-extrabold text-base text-white tracking-tight">
-                Brandbook Oficial · MEGASTATION SHOP
-              </h2>
-              <p className="text-[11px] text-sky-200">
-                Manual de Identidad Visual, Logotipo, Tipografías y Sistema Gráfico
-              </p>
+              <h2 className="text-base font-extrabold tracking-tight">Manual de Identidad Visual (Brandbook)</h2>
+              <p className="text-xs text-slate-400">Megastation Shop · Normas de uso gráfico y cromático oficial</p>
             </div>
           </div>
           <button
-            type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
+            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Modal Content */}
-        <div className="p-6 overflow-y-auto space-y-8">
-          {/* Slogan Banner */}
-          <div className="bg-gradient-to-r from-[#10A4C7] via-[#006899] to-[#13007C] text-white p-6 rounded-2xl relative overflow-hidden shadow-md">
-            <div className="relative z-10 max-w-xl space-y-2">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-[#48FEC1] bg-white/10 px-2.5 py-1 rounded-full border border-white/20">
-                Lema de Marca & Esencia
+        {/* Content Body */}
+        <div className="p-6 md:p-8 overflow-y-auto space-y-8">
+          {/* Mission & Slogan Section */}
+          <div className="bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border border-sky-100 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center md:text-left">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#006899] bg-sky-200/60 px-3 py-1 rounded-full">
+                Esencia de Marca
               </span>
-              <h3 className="text-2xl font-black text-white">
-                "Somos como el agua, nos adaptamos a cada cliente"
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                «Somos como el agua»
               </h3>
-              <p className="text-xs text-sky-100 leading-relaxed">
-                La identidad representa dinamismo, fluidez y cercanía. El agua fluye y toma la forma de su recipiente, del mismo modo en que Megastation adapta su oferta tecnológica a las necesidades de cada usuario en Belgrano y Colegiales.
+              <p className="text-xs sm:text-sm text-slate-600 max-w-lg leading-relaxed">
+                Nuestra filosofía representa adaptabilidad, fluidez, transparencia y constancia. Proveemos telefonía celular y servicio técnico especializado con la máxima agilidad del mercado.
               </p>
             </div>
-
-            {/* Background water wave decoration */}
-            <div className="absolute -right-8 -bottom-10 opacity-25 pointer-events-none">
-              <svg width="220" height="180" viewBox="0 0 200 160" fill="none">
-                <path
-                  d="M 20 140 C 80 40 140 180 190 60"
-                  stroke="#48FEC1"
-                  strokeWidth="28"
-                  strokeLinecap="round"
-                />
-              </svg>
+            <div className="bg-white p-4 rounded-2xl border border-sky-100 shadow-sm flex items-center justify-center min-w-[180px]">
+              <BrandLogo size="lg" layout="stacked" variant="color" />
             </div>
           </div>
 
           {/* Color Palette */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
               <Palette className="w-4 h-4 text-[#10A4C7]" />
               Paleta Cromática Oficial
             </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {colors.map((c) => (
                 <div
                   key={c.hex}
                   onClick={() => handleCopy(c.hex)}
-                  className="p-3 rounded-2xl border border-slate-200 bg-white hover:border-[#10A4C7] cursor-pointer transition-all space-y-2 group shadow-2xs"
+                  className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all group shadow-2xs"
+                  title="Haz clic para copiar HEX"
                 >
-                  <div
-                    className="w-full h-16 rounded-xl shadow-inner relative flex items-end justify-end p-1.5"
-                    style={{ backgroundColor: c.hex }}
-                  >
-                    {copiedColor === c.hex && (
-                      <span className="bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs flex items-center gap-0.5">
-                        <Check className="w-2.5 h-2.5 text-emerald-400" /> Copiado
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <div className="font-bold text-xs text-slate-900 line-clamp-1">{c.name}</div>
-                    <div className="text-[11px] font-mono text-slate-500 flex items-center justify-between mt-0.5">
-                      <span>{c.hex}</span>
-                      <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="space-y-2">
+                    <div
+                      className="w-full h-12 rounded-xl shadow-inner border border-black/10 relative flex items-center justify-center"
+                      style={{ backgroundColor: c.hex }}
+                    >
+                      {copiedColor === c.hex && (
+                        <span className="absolute inset-0 bg-slate-900/80 text-white text-[10px] font-bold rounded-xl flex items-center gap-1 justify-center animate-fade-in">
+                          <Check className="w-3 h-3 text-[#48FEC1]" /> Copiado
+                        </span>
+                      )}
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">{c.role}</div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 group-hover:text-[#006899] transition-colors">
+                        {c.name}
+                      </div>
+                      <div className="text-[10px] font-mono text-slate-500">{c.hex}</div>
+                    </div>
+                  </div>
+                  <div className="pt-2 mt-2 border-t border-slate-200/60 text-[9px] text-slate-400 font-medium">
+                    {c.pantone}
                   </div>
                 </div>
               ))}
@@ -196,7 +120,7 @@ export const BrandbookModal: React.FC<BrandbookModalProps> = ({ isOpen, onClose 
           </div>
 
           {/* Typography System */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
               <Type className="w-4 h-4 text-[#006899]" />
               Sistema Tipográfico
@@ -233,103 +157,6 @@ export const BrandbookModal: React.FC<BrandbookModalProps> = ({ isOpen, onClose 
 
           {/* Logo Versions and Construction */}
           <div className="space-y-4">
-            {/* Custom Logo Upload Card (Direct File Usage) */}
-            <div className="bg-gradient-to-r from-sky-50 to-blue-50 border-2 border-dashed border-sky-300 rounded-2xl p-5 transition-all">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#00ADEF]/15 border border-[#00ADEF]/30 flex items-center justify-center text-[#006899] flex-shrink-0 mt-0.5">
-                    <Upload className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                      Usar tu archivo de imagen original (MGST - Logo- Color.png)
-                      {activeLogo && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
-                          <CheckCircle2 className="w-3 h-3" /> Archivo Activo
-                        </span>
-                      )}
-                    </h4>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      Arrastra tu archivo aquí o selecciónalo para que la tienda use <strong>exactamente tus píxeles originales</strong> sin recreación ni alteraciones.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileSelect}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 sm:flex-initial px-4 py-2 bg-[#006899] hover:bg-[#005A94] text-white text-xs font-bold rounded-xl transition-colors shadow-xs flex items-center justify-center gap-1.5"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    Seleccionar archivo PNG
-                  </button>
-
-                  {activeLogo && (
-                    <button
-                      type="button"
-                      onClick={() => removeCustomLogo()}
-                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors border border-slate-200"
-                      title="Restaurar logotipo predeterminado"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Drop target zone */}
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`mt-4 border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
-                  isDragging
-                    ? 'border-[#00ADEF] bg-sky-100/60'
-                    : 'border-slate-300 hover:border-[#00ADEF] bg-white/80 hover:bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
-                  <ImageIcon className="w-4 h-4 text-[#006899]" />
-                  <span>
-                    {isDragging
-                      ? 'Suelta aquí tu archivo MGST - Logo- Color.png...'
-                      : 'Arrastra y suelta aquí tu archivo MGST - Logo- Color.png (o haz clic para explorar)'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Status messages */}
-              {uploadError && (
-                <div className="mt-3 p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
-                  <span>{uploadError}</span>
-                </div>
-              )}
-
-              {uploadSuccess && (
-                <div className="mt-3 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                  <span>¡Logotipo oficial cargado y aplicado con éxito en todo el sitio!</span>
-                </div>
-              )}
-
-              <div className="mt-2.5 text-[11px] text-slate-500 bg-white/60 rounded-lg p-2 border border-slate-200/60">
-                💡 <strong>Nota sobre archivos:</strong> Los archivos adjuntados al chat no se copian al disco automáticamente. Al subirlo aquí (o copiarlo a la carpeta <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">public/logo.png</code> en el explorador de archivos de AI Studio), se aplicará de inmediato en toda la tienda.
-              </div>
-            </div>
-
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                 <Layers className="w-4 h-4 text-[#10A4C7]" />

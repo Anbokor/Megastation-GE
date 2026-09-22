@@ -16,13 +16,11 @@ import { BrandLogo } from './BrandLogo';
 interface FooterProps {
   onOpenStores: () => void;
   onOpenAdmin: () => void;
-  onOpenLogoManager?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onOpenStores,
   onOpenAdmin,
-  onOpenLogoManager,
 }) => {
   return (
     <footer className="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 mt-16">
@@ -30,7 +28,7 @@ export const Footer: React.FC<FooterProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Col 1 & 2: Brand & Identity */}
           <div className="lg:col-span-2 space-y-4">
-            <BrandLogo size="md" variant="white" showSlogan={false} />
+            <BrandLogo size="md" variant="color" showSlogan={false} />
 
             <p className="text-xs text-slate-300 max-w-sm leading-relaxed mt-3">
               Líderes en telefonía celular, servicio técnico especializado y accesorios de vanguardia.
@@ -62,14 +60,14 @@ export const Footer: React.FC<FooterProps> = ({
                 <div className="font-bold text-slate-200">Sucursal Belgrano</div>
                 <div className="text-slate-400">Av. Cabildo 2995, CABA</div>
                 <div className="text-[11px] text-slate-500 font-mono">Lun a Sáb 10-20hs</div>
-                <div className="text-[11px] text-sky-400">Tel: +54 11 4781-9000</div>
+                <div className="text-[11px] text-sky-400">Tel: +54 11 4702-4538</div>
               </div>
 
               <div className="space-y-0.5 pt-2 border-t border-slate-800">
                 <div className="font-bold text-slate-200">Sucursal Colegiales</div>
                 <div className="text-slate-400">Av. Elcano 3096, CABA</div>
                 <div className="text-[11px] text-slate-500 font-mono">Lun a Sáb 10-19:30hs</div>
-                <div className="text-[11px] text-sky-400">Tel: +54 11 4552-8800</div>
+                <div className="text-[11px] text-sky-400">Tel: +54 11 4552-5270</div>
               </div>
             </div>
           </div>
@@ -145,14 +143,6 @@ export const Footer: React.FC<FooterProps> = ({
             <button type="button" onClick={onOpenStores} className="hover:text-slate-300">
               Locales Belgrano & Colegiales
             </button>
-            {onOpenLogoManager && (
-              <>
-                <span>·</span>
-                <button type="button" onClick={onOpenLogoManager} className="text-[#38BDF8] hover:text-white font-medium">
-                  Gestión de Logotipo
-                </button>
-              </>
-            )}
             <span>·</span>
             <span>Términos & Condiciones</span>
             <span>·</span>

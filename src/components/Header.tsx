@@ -29,7 +29,6 @@ interface HeaderProps {
   onOpenLogin: () => void;
   onLogout: () => void;
   onOpenAdminDashboard: () => void;
-  onOpenLogoManager?: () => void;
   cartCount: number;
   cartTotal: number;
   onOpenCart: () => void;
@@ -50,7 +49,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenLogin,
   onLogout,
   onOpenAdminDashboard,
-  onOpenLogoManager,
   cartCount,
   cartTotal,
   onOpenCart,
@@ -267,20 +265,6 @@ export const Header: React.FC<HeaderProps> = ({
                           <span>
                             {currentUser.role === 'admin' ? 'Panel de Administración' : 'Terminal POS & Stock'}
                           </span>
-                        </button>
-                      )}
-
-                      {onOpenLogoManager && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsUserMenuOpen(false);
-                            onOpenLogoManager();
-                          }}
-                          className="w-full text-left px-3 py-2 text-xs font-semibold text-[#10A4C7] hover:bg-sky-50 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
-                        >
-                          <FolderOpen className="w-4 h-4 text-[#10A4C7]" />
-                          <span>Gestor de Archivos de Logo</span>
                         </button>
                       )}
 

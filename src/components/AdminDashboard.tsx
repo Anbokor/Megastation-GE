@@ -16,13 +16,6 @@ import {
   Scan,
   RefreshCw,
   Edit2,
-  Palette,
-  Upload,
-  Sparkles,
-  Image as ImageIcon,
-  Trash2,
-  Copy,
-  Check,
   ShieldCheck,
   Store
 } from 'lucide-react';
@@ -39,7 +32,6 @@ import { CATEGORIES } from '../data/initialData';
 import { formatCurrencyARS, generateArgentineBarcode } from '../utils/formatters';
 import { BarcodeVisual } from './BarcodeVisual';
 import { BrandLogo } from './BrandLogo';
-import { getCustomLogo, setCustomLogo, removeCustomLogo, subscribeToLogoChanges } from '../utils/logoStorage';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -72,22 +64,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const isAdmin = currentUser?.role === 'admin';
   const userBranch = branches.find((b) => b.id === currentUser?.branchId) || branches[0];
 
-  // Active Tab: 'analytics' | 'invoicing' | 'inventory' | 'pos_scanner' | 'orders' | 'brand'
+  // Active Tab: 'analytics' | 'invoicing' | 'inventory' | 'pos_scanner' | 'orders'
   const [activeTab, setActiveTab] = React.useState<
-    'analytics' | 'invoicing' | 'inventory' | 'pos_scanner' | 'orders' | 'brand'
+    'analytics' | 'invoicing' | 'inventory' | 'pos_scanner' | 'orders'
   >('analytics');
-
-  // Brand tab logo management state
-  const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(() => getCustomLogo('color'));
-  const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
-  const [logoUploadSuccess, setLogoUploadSuccess] = useState(false);
-  const [copiedHex, setCopiedHex] = useState<string | null>(null);
-  const logoInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    const update = () => setCustomLogoUrl(getCustomLogo('color'));
-    return subscribeToLogoChanges(update);
-  }, []);
 
   // When opening or when role changes, set sensible default tab
   useEffect(() => {
@@ -329,22 +309,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <CheckCircle2 className="w-4 h-4 text-purple-600" />
             <span>{isSeller ? 'Despacho de Pedidos' : 'Gestión de Pedidos'} ({orders.length})</span>
           </button>
-
-          {/* Admin brand settings tab */}
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => setActiveTab('brand')}
-              className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
-                activeTab === 'brand'
-                  ? 'bg-white text-[#006899] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Palette className="w-4 h-4 text-[#10A4C7]" />
-              <span>Identidad & Marca</span>
-            </button>
-          )}
         </div>
 
         {/* Tab 1: Analytics & Metrics */}
@@ -977,213 +941,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 6: Brand Identity & Logo Settings (Admin Only) */}
-        {activeTab === 'brand' && isAdmin && (
-          <div className="p-6 overflow-y-auto space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Palette className="w-5 h-5 text-[#10A4C7]" />
-                  Identidad Visual & Gestión de Logotipo
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Administrá el logo corporativo de la tienda y consultá la paleta cromática oficial de Megastation Shop.
-                </p>
-              </div>
-
-              {onOpenBrandbookModal && (
-                <button
-                  type="button"
-                  onClick={onOpenBrandbookModal}
-                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs"
-                >
-                  <Sparkles className="w-4 h-4 text-[#48FEC1]" />
-                  <span>Ver Brandbook Completo</span>
-                </button>
-              )}
-            </div>
-
-            {/* Logo Management Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Preview Cards */}
-              <div className="space-y-4">
-                <span className="font-bold text-xs uppercase tracking-wider text-slate-500 block">
-                  Vista Previa del Logotipo en Entornos
-                </span>
-
-                {/* Light background preview */}
-                <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Sobre Fondo Claro (Cabecera de Tienda)
-                  </span>
-                  <div className="py-3 flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100">
-                    <BrandLogo size="md" layout="horizontal" showSlogan={true} />
-                  </div>
-                </div>
-
-                {/* Dark background preview */}
-                <div className="p-5 rounded-2xl border border-slate-800 bg-slate-950 shadow-2xs space-y-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Sobre Fondo Oscuro (Modo Nocturno / Aplicaciones)
-                  </span>
-                  <div className="py-3 flex items-center justify-center bg-slate-900 rounded-xl border border-slate-800">
-                    <BrandLogo size="md" layout="horizontal" showSlogan={true} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Upload & Controls */}
-              <div className="space-y-4">
-                <span className="font-bold text-xs uppercase tracking-wider text-slate-500 block">
-                  Actualizar Archivo de Logotipo
-                </span>
-
-                <div className="p-5 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/70 hover:bg-slate-50 text-center transition-all space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-[#006899] mx-auto flex items-center justify-center shadow-xs">
-                    <Upload className="w-6 h-6 text-[#10A4C7]" />
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      Cargar nuevo isotipo o imagotipo
-                    </h4>
-                    <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                      Formatos recomendados: SVG transparente, PNG de alta resolución o WebP. Máximo 3 MB.
-                    </p>
-                  </div>
-
-                  {logoUploadError && (
-                    <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center justify-center gap-1.5">
-                      <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
-                      <span>{logoUploadError}</span>
-                    </div>
-                  )}
-
-                  {logoUploadSuccess && (
-                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                      <span>¡Logotipo actualizado con éxito en todo el sistema!</span>
-                    </div>
-                  )}
-
-                  <input
-                    type="file"
-                    ref={logoInputRef}
-                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      setLogoUploadError(null);
-                      setLogoUploadSuccess(false);
-
-                      if (file.size > 3 * 1024 * 1024) {
-                        setLogoUploadError('El archivo excede el tamaño máximo permitido de 3 MB.');
-                        return;
-                      }
-
-                      const reader = new FileReader();
-                      reader.onload = (uploadEvent) => {
-                        const result = uploadEvent.target?.result;
-                        if (typeof result === 'string') {
-                          const saved = setCustomLogo(result);
-                          if (saved) {
-                            setLogoUploadSuccess(true);
-                            setTimeout(() => setLogoUploadSuccess(false), 4000);
-                          } else {
-                            setLogoUploadError('No se pudo procesar la imagen de forma segura.');
-                          }
-                        }
-                      };
-                      reader.readAsDataURL(file);
-                    }}
-                  />
-
-                  <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => logoInputRef.current?.click()}
-                      className="px-4 py-2 bg-[#006899] hover:bg-[#00557d] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
-                    >
-                      <ImageIcon className="w-4 h-4" />
-                      <span>Seleccionar Archivo</span>
-                    </button>
-
-                    {customLogoUrl && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          removeCustomLogo();
-                          setLogoUploadSuccess(false);
-                          setLogoUploadError(null);
-                        }}
-                        className="px-3.5 py-2 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-rose-600 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span>Restaurar Predeterminado</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Official Brand Palette */}
-            <div className="space-y-3 pt-2">
-              <span className="font-bold text-xs uppercase tracking-wider text-slate-500 block">
-                Paleta Cromática Oficial Megastation Shop
-              </span>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                {[
-                  { name: 'Cyan Principal', hex: '#10A4C7', pantone: 'Pantone 312 C', role: 'Primario Marca' },
-                  { name: 'Deep Ocean Blue', hex: '#006899', pantone: 'Pantone 301 C', role: 'Secundario Primario' },
-                  { name: 'Deep Violet', hex: '#13007C', pantone: 'Pantone 2745 C', role: 'Acento Nocturno' },
-                  { name: 'Mint Tech', hex: '#48FEC1', pantone: 'Pantone 3375 C', role: 'Éxito & Destacados' },
-                  { name: 'Solar Amber', hex: '#FFB000', pantone: 'Pantone 1235 C', role: 'Llamados a Acción' },
-                ].map((col) => (
-                  <div key={col.hex} className="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs bg-white">
-                    <div 
-                      className="h-14 w-full flex items-end justify-end p-2"
-                      style={{ backgroundColor: col.hex }}
-                    >
-                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-black/40 text-white backdrop-blur-xs">
-                        {col.hex}
-                      </span>
-                    </div>
-                    <div className="p-3">
-                      <div className="font-bold text-xs text-slate-900 truncate">{col.name}</div>
-                      <div className="text-[10px] text-slate-500 mt-0.5">{col.role}</div>
-                      <div className="text-[10px] font-mono text-slate-400 mt-0.5">{col.pantone}</div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(col.hex);
-                          setCopiedHex(col.hex);
-                          setTimeout(() => setCopiedHex(null), 2000);
-                        }}
-                        className="mt-2 w-full py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                      >
-                        {copiedHex === col.hex ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                            <span className="text-emerald-700">¡Copiado!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3 text-slate-400" />
-                            <span>Copiar HEX</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         )}

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 240" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="mgstHorizGrad" x1="12%" y1="15%" x2="92%" y2="88%">
+      <stop offset="0%" stop-color="#00ADEF" />
+      <stop offset="32%" stop-color="#008FD3" />
+      <stop offset="68%" stop-color="#006699" />
+      <stop offset="100%" stop-color="#00487C" />
+    </linearGradient>
+  </defs>
+
+  <!-- Scaled Emblem on the Left -->
+  <g transform="translate(10, 8) scale(0.38)" stroke="url(#mgstHorizGrad)" stroke-width="120" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 118 575 V 335 C 118 250 178 202 206 202 C 234 202 294 250 294 335 V 575" />
+    <path d="M 294 400 C 312 270 376 202 426 202 C 490 202 526 265 526 360 V 465 C 526 535 565 575 635 575 H 825" />
+    <path d="M 548 400 C 548 285 620 202 730 202 C 840 202 915 275 915 365 C 915 410 885 435 825 435 H 675" />
+  </g>
+
+  <!-- Typography on the Right: MEGA STATION -->
+  <g transform="translate(230, -570) scale(0.95)" fill="#00ADEF">
+    <!-- M -->
+    <path d="M 68 805 C 59 805 52 798 52 789 V 736 C 52 725 61 716 72 716 C 81 716 89 722 93 731 C 98 722 106 716 115 716 C 126 716 135 725 135 736 V 789 C 135 798 128 805 119 805 C 111 805 104 798 104 789 V 745 C 104 740 100 736 95 736 C 90 736 86 740 86 745 V 789 C 86 798 79 805 71 805 Z" transform="translate(16, -6)" />
+    <!-- E -->
+    <path d="M 166 716 H 218 C 226 716 232 722 232 730 C 232 738 226 744 218 744 H 186 V 755 H 212 C 220 755 226 761 226 769 C 226 777 220 783 212 783 H 186 V 794 H 218 C 226 794 232 800 232 808 C 232 816 226 822 218 822 H 166 C 158 822 152 816 152 808 V 730 C 152 722 158 716 166 716 Z" transform="translate(24, -18)" />
+    <!-- G -->
+    <path d="M 298 716 C 330 716 354 738 354 769 C 354 776 348 782 341 782 H 304 C 297 782 291 776 291 769 C 291 762 297 756 304 756 H 326 C 322 746 311 738 298 738 C 280 738 266 752 266 769 C 266 786 280 800 298 800 C 310 800 320 793 325 784 H 306 C 299 784 293 778 293 771 C 293 764 299 758 306 758 H 338 C 345 758 351 764 351 771 V 782 C 351 806 329 822 298 822 C 261 822 236 797 236 769 C 236 741 261 716 298 716 Z" transform="translate(32, -18)" />
+    <!-- A -->
+    <path d="M 402 716 C 411 716 418 721 422 730 L 449 801 C 452 808 447 817 440 819 C 433 821 424 817 422 809 L 416 792 H 388 L 382 809 C 380 817 372 821 364 819 C 357 817 353 808 355 801 L 382 730 C 386 721 393 716 402 716 Z M 394 770 H 410 L 402 748 Z" transform="translate(38, -18)" />
+  </g>
+
+  <!-- STATION on the Right -->
+  <g transform="translate(230, -570) scale(0.95)" fill="none" stroke="#005A9C" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 508 732 C 502 722 491 716 478 716 C 462 716 451 726 451 739 C 451 753 463 759 477 763 C 496 768 509 775 509 789 C 509 802 496 813 478 813 C 463 813 450 805 444 793" transform="translate(48, -12)" />
+    <path d="M 522 720 H 574 M 548 720 V 805" transform="translate(48, -12)" />
+    <path d="M 588 805 L 612 720 C 614 716 620 716 622 720 L 646 805 M 598 774 H 636" transform="translate(48, -12)" />
+    <path d="M 660 720 H 712 M 686 720 V 805" transform="translate(48, -12)" />
+    <path d="M 730 720 V 805" transform="translate(48, -12)" />
+    <rect x="756" y="720" width="62" height="85" rx="30" transform="translate(48, -12)" />
+    <path d="M 846 805 V 720 L 898 805 V 720" transform="translate(48, -12)" />
+  </g>
+</svg>

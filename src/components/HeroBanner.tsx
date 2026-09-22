@@ -120,7 +120,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               </div>
               <p className="text-xs text-slate-200 font-medium">Av. Cabildo 2995, CABA</p>
               <div className="text-[11px] text-slate-300 flex items-center justify-between pt-1">
-                <span>Tel: +54 11 4781-9000</span>
+                <span>Tel: +54 11 4702-4538</span>
                 <span className="text-emerald-300 font-semibold">Pick-up en 1 hora</span>
               </div>
             </div>
@@ -136,7 +136,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               </div>
               <p className="text-xs text-slate-200 font-medium">Av. Elcano 3096, CABA</p>
               <div className="text-[11px] text-slate-300 flex items-center justify-between pt-1">
-                <span>Tel: +54 11 4552-8800</span>
+                <span>Tel: +54 11 4552-5270</span>
                 <span className="text-emerald-300 font-semibold">Laboratorio Técnico</span>
               </div>
             </div>

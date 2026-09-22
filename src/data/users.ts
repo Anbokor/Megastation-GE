@@ -7,7 +7,7 @@ export const DEMO_USERS: AppUser[] = [
     email: 'admin@megastation.com',
     role: 'admin',
     branchId: 'central',
-    phone: '+54 11 4781-9000',
+    phone: '+54 11 4702-4538',
     dni: '29.340.112',
   },
   {
@@ -16,7 +16,7 @@ export const DEMO_USERS: AppUser[] = [
     email: 'belgrano@megastation.com',
     role: 'seller',
     branchId: 'belgrano',
-    phone: '+54 11 4781-9001',
+    phone: '+54 11 4702-4538',
     dni: '35.882.104',
   },
   {
@@ -25,7 +25,7 @@ export const DEMO_USERS: AppUser[] = [
     email: 'colegiales@megastation.com',
     role: 'seller',
     branchId: 'colegiales',
-    phone: '+54 11 4552-3400',
+    phone: '+54 11 4552-5270',
     dni: '37.194.551',
   },
   {
