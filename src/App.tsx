@@ -183,18 +183,15 @@ export default function App() {
     }
   };
 
-  // --- Cart Operations with Inventory Check ---
+  // --- Cart Operations with Inventory & On-Demand (Bajo Pedido) Support ---
   const handleAddToCart = (product: Product, quantity: number = 1) => {
     const freshProduct = products.find((p) => p.id === product.id) || product;
     const availableStock = freshProduct.stockByStore?.[selectedBranchId] ?? 0;
     const existingInCart = cart.find((i) => i.product.id === product.id)?.quantity || 0;
 
-    if (existingInCart + quantity > availableStock) {
-      alert(
-        availableStock === 0
-          ? `Lo sentimos, este artículo no tiene stock disponible en la sucursal seleccionada (${selectedBranchId.toUpperCase()}).`
-          : `No es posible agregar más unidades. Stock disponible en ${selectedBranchId.toUpperCase()}: ${availableStock} un. (ya agregaste ${existingInCart}).`
-      );
+    const maxAllowed = Math.max(availableStock, 15);
+    if (existingInCart + quantity > maxAllowed) {
+      alert('Para pedidos de más de 15 unidades, por favor comunicate con nuestro equipo por WhatsApp para cotización mayorista.');
       return;
     }
 
@@ -203,11 +200,22 @@ export default function App() {
       if (existingIndex > -1) {
         return prevCart.map((item, idx) =>
           idx === existingIndex
-            ? { ...item, quantity: item.quantity + quantity }
+            ? {
+                ...item,
+                quantity: item.quantity + quantity,
+                isBackorder: item.quantity + quantity > availableStock,
+              }
             : item
         );
       }
-      return [...prevCart, { product: freshProduct, quantity }];
+      return [
+        ...prevCart,
+        {
+          product: freshProduct,
+          quantity,
+          isBackorder: quantity > availableStock,
+        },
+      ];
     });
   };
 
@@ -219,13 +227,23 @@ export default function App() {
 
     const prod = products.find((p) => p.id === productId) || cart.find((i) => i.product.id === productId)?.product;
     const availableStock = prod ? (prod.stockByStore?.[selectedBranchId] ?? 0) : 0;
-    if (newQty > availableStock) {
-      alert(`Stock máximo disponible en sucursal: ${availableStock} unidades.`);
+    const maxAllowed = Math.max(availableStock, 15);
+
+    if (newQty > maxAllowed) {
+      alert('Límite máximo de compra alcanzado (15 unidades). Contactanos por WhatsApp para compras mayoristas.');
       return;
     }
 
     setCart((prev) =>
-      prev.map((item) => (item.product.id === productId ? { ...item, quantity: newQty } : item))
+      prev.map((item) =>
+        item.product.id === productId
+          ? {
+              ...item,
+              quantity: newQty,
+              isBackorder: newQty > availableStock,
+            }
+          : item
+      )
     );
   };
 

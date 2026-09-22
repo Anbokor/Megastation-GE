@@ -68,6 +68,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   preferredBranchId?: StoreBranchId;
+  isBackorder?: boolean;
 }
 
 export type DeliveryMethod = 'pickup' | 'delivery';
@@ -104,6 +105,7 @@ export interface OrderItem {
   price: number;
   quantity: number;
   barcode: string;
+  isBackorder?: boolean;
 }
 
 export interface Order {
@@ -120,6 +122,7 @@ export interface Order {
   paymentMethod: PaymentMethod;
   paymentStatus: 'paid' | 'pending';
   orderStatus: OrderStatus;
+  hasBackorder?: boolean;
   createdAt: string;
   statusHistory: {
     status: OrderStatus;

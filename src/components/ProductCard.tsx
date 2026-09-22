@@ -5,7 +5,8 @@ import {
   MapPin, 
   Star, 
   Check, 
-  Barcode 
+  Barcode,
+  Clock 
 } from 'lucide-react';
 import { Product, StoreBranchId } from '../types';
 import { formatCurrencyARS, calculateInstallments, getBranchStockLabel } from '../utils/formatters';
@@ -71,10 +72,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           loading="lazy"
         />
         {totalStock === 0 && (
-          <div className="absolute inset-0 bg-white/70 backdrop-blur-xs flex items-center justify-center">
-            <span className="bg-rose-600 text-white font-bold text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-              Agotado Temporalmente
-            </span>
+          <div className="absolute bottom-2 left-2 right-2 bg-slate-900/85 backdrop-blur-xs text-sky-200 text-[10px] font-bold py-1 px-2.5 rounded-lg text-center border border-sky-400/30 flex items-center justify-center gap-1.5 shadow-sm">
+            <Clock className="w-3 h-3 text-[#48FEC1]" />
+            <span>Disponible bajo pedido (3-5 días)</span>
           </div>
         )}
       </div>
@@ -142,13 +142,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             type="button"
             onClick={handleAdd}
-            disabled={currentBranchStock.quantity === 0}
-            className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs ${
+            className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer ${
               added
                 ? 'bg-emerald-600 text-white'
                 : currentBranchStock.quantity === 0
-                ? 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed'
-                : 'bg-[#10A4C7] hover:bg-[#0e94b4] active:bg-[#006899] text-white hover:shadow-md cursor-pointer'
+                ? 'bg-gradient-to-r from-indigo-600 to-[#10A4C7] hover:from-indigo-700 hover:to-[#006899] text-white hover:shadow-md'
+                : 'bg-[#10A4C7] hover:bg-[#0e94b4] active:bg-[#006899] text-white hover:shadow-md'
             }`}
           >
             {added ? (
@@ -157,7 +156,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <span>¡Agregado!</span>
               </>
             ) : currentBranchStock.quantity === 0 ? (
-              <span>Sin Stock en Sucursal</span>
+              <>
+                <Clock className="w-4 h-4 text-sky-200" />
+                <span>Comprar Bajo Pedido</span>
+              </>
             ) : (
               <>
                 <ShoppingCart className="w-4 h-4" />

@@ -15,7 +15,8 @@ import {
   Mail,
   User,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Clock
 } from 'lucide-react';
 import { 
   CartItem, 
@@ -175,6 +176,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         {/* Step 1: Customer Data & Fulfillment */}
         {step === 1 && (
           <div className="p-6 overflow-y-auto space-y-6">
+            {/* Notice if backorder items exist */}
+            {items.some(
+              (i) =>
+                i.isBackorder ||
+                (i.product.stockByStore?.[selectedBranchId] ?? 0) < i.quantity
+            ) && (
+              <div className="p-3.5 bg-indigo-50/80 border border-indigo-200/90 rounded-2xl flex items-start gap-3 text-xs text-indigo-950 font-medium">
+                <Clock className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-900 block mb-0.5">
+                    Compra con artículos Bajo Pedido
+                  </span>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Tu carrito incluye artículos que se solicitan a distribuidor oficial. <strong>Demora estimada de preparación: 3 a 5 días hábiles</strong>. Te notificaremos por Email y WhatsApp cuando tu pedido esté listo para retiro o despacho.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Fulfillment choice */}
             <div className="space-y-3">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -201,7 +221,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
-                    Listo en 1 hora en Belgrano o Colegiales.
+                    {items.some(
+                      (i) =>
+                        i.isBackorder ||
+                        (i.product.stockByStore?.[pickupBranchId] ?? 0) < i.quantity
+                    )
+                      ? 'Demora estimada de preparación: 3 a 5 días hábiles.'
+                      : 'Listo en 1 hora en Belgrano o Colegiales.'}
                   </p>
                 </button>
 

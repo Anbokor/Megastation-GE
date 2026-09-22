@@ -34,12 +34,12 @@ export function getBranchStockLabel(product: Product, branchId: StoreBranchId): 
   label: string;
   badgeClass: string;
 } {
-  const qty = product.stockByStore[branchId] || 0;
+  const qty = product.stockByStore?.[branchId] || 0;
   if (qty === 0) {
     return {
       quantity: 0,
-      label: 'Sin stock',
-      badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+      label: 'Bajo Pedido (3-5 d)',
+      badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     };
   }
   if (qty <= 3) {

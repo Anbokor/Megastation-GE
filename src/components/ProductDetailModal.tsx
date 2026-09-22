@@ -14,7 +14,8 @@ import {
   Smartphone, 
   Camera, 
   Calendar,
-  Share2
+  Share2,
+  Clock
 } from 'lucide-react';
 import { Product, StoreBranch, StoreBranchId } from '../types';
 import { BarcodeVisual } from './BarcodeVisual';
@@ -192,59 +193,80 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
               {/* Quantity and Add to Cart action */}
               {(() => {
-                const branchStockQty = product.stockByStore[selectedBranchId] ?? 0;
+                const branchStockQty = product.stockByStore?.[selectedBranchId] ?? 0;
                 const isOutOfStock = branchStockQty === 0;
+                const maxQty = isOutOfStock ? 15 : Math.max(branchStockQty, 15);
 
                 return (
-                  <div className="pt-2 flex items-center gap-3">
-                    <div className="flex items-center border border-slate-200 rounded-xl bg-white p-1">
+                  <div className="space-y-3 pt-2">
+                    {/* On-Demand notice banner if no immediate local stock */}
+                    {isOutOfStock && (
+                      <div className="bg-sky-50/80 border border-sky-200/90 rounded-2xl p-3.5 flex items-start gap-3 text-xs text-slate-700">
+                        <Clock className="w-4 h-4 text-[#10A4C7] shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-bold text-slate-900 block mb-0.5">
+                            Disponible para compra Bajo Pedido
+                          </span>
+                          <p className="text-[11px] text-slate-600 leading-relaxed">
+                            No contamos con stock inmediato en {branches.find((b) => b.id === selectedBranchId)?.shortName || 'sucursal'}, pero podés reservarlo y comprarlo ahora. Se encarga a fábrica/distribuidor oficial. <strong>Demora estimada: 3 a 5 días hábiles</strong>.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center border border-slate-200 rounded-xl bg-white p-1">
+                        <button
+                          type="button"
+                          disabled={quantity <= 1}
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+                        >
+                          -
+                        </button>
+                        <span className="w-10 text-center font-bold text-sm text-slate-800">
+                          {quantity}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={quantity >= maxQty}
+                          onClick={() => setQuantity(quantity + 1)}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+                          title={quantity >= maxQty ? 'Límite máximo por pedido alcanzado' : 'Aumentar cantidad'}
+                        >
+                          +
+                        </button>
+                      </div>
+
                       <button
                         type="button"
-                        disabled={quantity <= 1 || isOutOfStock}
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+                        onClick={handleAdd}
+                        className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer ${
+                          added
+                            ? 'bg-emerald-600 text-white'
+                            : isOutOfStock
+                            ? 'bg-gradient-to-r from-indigo-600 to-[#10A4C7] hover:from-indigo-700 hover:to-[#006899] text-white'
+                            : 'bg-[#10A4C7] hover:bg-[#006899] text-white'
+                        }`}
                       >
-                        -
-                      </button>
-                      <span className="w-10 text-center font-bold text-sm text-slate-800">
-                        {isOutOfStock ? 0 : quantity}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={quantity >= branchStockQty || isOutOfStock}
-                        onClick={() => setQuantity(quantity + 1)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
-                      >
-                        +
+                        {added ? (
+                          <>
+                            <Check className="w-5 h-5" />
+                            <span>¡Agregado al Carrito!</span>
+                          </>
+                        ) : isOutOfStock ? (
+                          <>
+                            <Clock className="w-5 h-5 text-sky-200" />
+                            <span>Comprar Bajo Pedido ({quantity})</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="w-5 h-5" />
+                            <span>Agregar al Carrito ({quantity})</span>
+                          </>
+                        )}
                       </button>
                     </div>
-
-                    <button
-                      type="button"
-                      disabled={isOutOfStock}
-                      onClick={handleAdd}
-                      className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
-                        added
-                          ? 'bg-emerald-600 text-white'
-                          : isOutOfStock
-                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                          : 'bg-[#10A4C7] hover:bg-[#006899] text-white cursor-pointer'
-                      }`}
-                    >
-                      {added ? (
-                        <>
-                          <Check className="w-5 h-5" />
-                          <span>¡Agregado al Carrito!</span>
-                        </>
-                      ) : isOutOfStock ? (
-                        <span>Agotado en esta sucursal</span>
-                      ) : (
-                        <>
-                          <ShoppingCart className="w-5 h-5" />
-                          <span>Agregar al Carrito ({quantity})</span>
-                        </>
-                      )}
-                    </button>
                   </div>
                 );
               })()}

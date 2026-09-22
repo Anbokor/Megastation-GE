@@ -25,7 +25,8 @@ import {
   FileText,
   Filter,
   ChevronDown,
-  Sparkles
+  Sparkles,
+  Clock
 } from 'lucide-react';
 import { 
   Product, 
@@ -739,19 +740,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </td>
 
                         <td className="p-3">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                            order.orderStatus === 'entregado'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : order.orderStatus === 'listo_retiro'
-                              ? 'bg-sky-100 text-sky-800'
-                              : order.orderStatus === 'en_preparacion'
-                              ? 'bg-amber-100 text-amber-800'
-                              : order.orderStatus === 'cancelado'
-                              ? 'bg-rose-100 text-rose-800'
-                              : 'bg-slate-100 text-slate-800'
-                          }`}>
-                            {order.orderStatus.replace('_', ' ')}
-                          </span>
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                              order.orderStatus === 'entregado'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : order.orderStatus === 'listo_retiro'
+                                ? 'bg-sky-100 text-sky-800'
+                                : order.orderStatus === 'en_preparacion'
+                                ? 'bg-amber-100 text-amber-800'
+                                : order.orderStatus === 'cancelado'
+                                ? 'bg-rose-100 text-rose-800'
+                                : 'bg-slate-100 text-slate-800'
+                            }`}>
+                              {order.orderStatus.replace('_', ' ')}
+                            </span>
+                            {order.hasBackorder && (
+                              <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
+                                <Clock className="w-2.5 h-2.5 text-indigo-600" />
+                                <span>Bajo Pedido</span>
+                              </span>
+                            )}
+                          </div>
                         </td>
 
                         <td className="p-3 text-center space-x-1.5">
@@ -1727,7 +1736,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {selectedOrderForDetail.items.map((it, idx) => (
                       <div key={idx} className="p-3 flex items-center justify-between text-xs bg-white">
                         <div>
-                          <div className="font-bold text-slate-900">{it.productName}</div>
+                          <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <span>{it.productName}</span>
+                            {it.isBackorder && (
+                              <span className="text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <Clock className="w-2.5 h-2.5" />
+                                <span>Bajo Pedido</span>
+                              </span>
+                            )}
+                          </div>
                           <div className="text-[10px] text-slate-400">{it.brand} · {it.barcode}</div>
                         </div>
                         <div className="text-right">

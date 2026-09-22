@@ -36,24 +36,29 @@ async function runTests() {
   console.log('4. Valid password login:', Boolean(successLogin.token && successLogin.user.role === 'admin') ? '✅ PASS' : '❌ FAIL');
   const adminToken = successLogin.token;
 
-  // 5. Order creation - Insufficient stock test
-  const badOrderRes = await fetch(`${baseUrl}/orders`, {
+  // 5. Order creation - Zero stock product allowed as 'Bajo Pedido' (On-demand)
+  const backorderRes = await fetch(`${baseUrl}/orders`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       customer: {
-        fullName: 'Test User',
-        email: 'test@example.com',
+        fullName: 'Comprador Bajo Pedido',
+        email: 'bajopedido@example.com',
         phone: '1122334455',
         dni: '12345678',
       },
-      items: [{ productId: sampleProd.id, quantity: 999999 }],
+      items: [{ productId: sampleProd.id, quantity: 2 }], // sampleProd has 0 stock in belgrano
       deliveryMethod: 'pickup',
       branchId: 'belgrano',
-      paymentMethod: 'mercadopago',
+      paymentMethod: 'bank_transfer',
     }),
   });
-  console.log('5. Insufficient stock rejected (400):', badOrderRes.status === 400 ? '✅ PASS' : '❌ FAIL');
+  const backorderData: any = await backorderRes.json();
+  const isBackorderSuccess =
+    backorderRes.status === 201 &&
+    backorderData.hasBackorder === true &&
+    Boolean(backorderData.items?.[0]?.isBackorder);
+  console.log('5. On-Demand (Bajo Pedido) purchase accepted (status 201, hasBackorder: true):', isBackorderSuccess ? '✅ PASS' : '❌ FAIL');
 
   // Pick a product with available stock in Belgrano, or replenish stock if needed
   let testProd = products.find((p: any) => p.stockByStore.belgrano > 0);

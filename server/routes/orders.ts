@@ -41,6 +41,7 @@ function formatOrderResponse(
       price: i.price,
       quantity: i.quantity,
       barcode: i.barcode,
+      isBackorder: Boolean(i.isBackorder),
     })),
     subtotal: order.subtotal,
     discount: order.discount,
@@ -52,6 +53,7 @@ function formatOrderResponse(
     paymentStatus: order.paymentStatus,
     orderStatus: order.orderStatus,
     statusHistory,
+    hasBackorder: Boolean(order.hasBackorder),
     createdAt: order.createdAt,
   };
 }
@@ -84,7 +86,8 @@ ordersRouter.post('/', authenticateToken, async (req: AuthenticatedRequest, res:
 
     const targetBranch = deliveryMethod === 'pickup' && branchId ? branchId : 'central';
 
-    // SERVER-SIDE PRICE AND STOCK VALIDATION
+    // SERVER-SIDE PRICE AND ON-DEMAND / BACKORDER LOGIC
+    let orderHasBackorder = false;
     const validatedItems: {
       productId: string;
       productName: string;
@@ -92,6 +95,9 @@ ordersRouter.post('/', authenticateToken, async (req: AuthenticatedRequest, res:
       price: number;
       quantity: number;
       barcode: string;
+      isBackorder: boolean;
+      onHandDeduction: number;
+      backorderQuantity: number;
     }[] = [];
 
     let calculatedSubtotal = 0;
@@ -113,12 +119,13 @@ ordersRouter.post('/', authenticateToken, async (req: AuthenticatedRequest, res:
         .get();
 
       const availableStock = stockRecord?.quantity || 0;
-      if (availableStock < qty) {
-        res.status(400).json({
-          error: `Stock insuficiente para "${dbProd.name}" en sucursal ${targetBranch.toUpperCase()} (disponibles: ${availableStock}, solicitados: ${qty}).`,
-        });
-        return;
+      const isItemBackorder = availableStock < qty;
+      if (isItemBackorder) {
+        orderHasBackorder = true;
       }
+
+      const onHandDeduction = Math.min(availableStock, qty);
+      const backorderQuantity = Math.max(0, qty - availableStock);
 
       const lineTotal = dbProd.price * qty;
       calculatedSubtotal += lineTotal;
@@ -130,6 +137,9 @@ ordersRouter.post('/', authenticateToken, async (req: AuthenticatedRequest, res:
         price: dbProd.price, // Always use server DB price
         quantity: qty,
         barcode: dbProd.barcode,
+        isBackorder: isItemBackorder,
+        onHandDeduction,
+        backorderQuantity,
       });
     }
 
@@ -148,12 +158,13 @@ ordersRouter.post('/', authenticateToken, async (req: AuthenticatedRequest, res:
       {
         status: 'pendiente',
         timestamp: new Date().toISOString(),
-        note:
-          paymentMethod === 'mercadopago'
-            ? 'Orden generada para pago con Mercado Pago Sandbox.'
-            : paymentMethod === 'bank_transfer'
-            ? 'Esperando acreditación de transferencia bancaria.'
-            : 'Orden confirmada para abonar al retirar en mostrador.',
+        note: orderHasBackorder
+          ? 'Orden generada con artículos bajo pedido (demora estimada de 3 a 5 días hábiles para preparación).'
+          : paymentMethod === 'mercadopago'
+          ? 'Orden generada para pago con Mercado Pago Sandbox.'
+          : paymentMethod === 'bank_transfer'
+          ? 'Esperando acreditación de transferencia bancaria.'
+          : 'Orden confirmada para abonar al retirar en mostrador.',
       },
     ];
 
@@ -179,6 +190,7 @@ ordersRouter.post('/', authenticateToken, async (req: AuthenticatedRequest, res:
           shippingCost,
           total: calculatedTotal,
           statusHistoryJson: JSON.stringify(initialStatusHistory),
+          hasBackorder: orderHasBackorder,
           createdAt: new Date().toISOString(),
         })
         .run();
@@ -194,20 +206,25 @@ ordersRouter.post('/', authenticateToken, async (req: AuthenticatedRequest, res:
             price: item.price,
             quantity: item.quantity,
             barcode: item.barcode,
+            isBackorder: item.isBackorder,
           })
           .run();
 
-        // Decrement stock
-        const currentStock = db
-          .select()
-          .from(branchStock)
-          .where(and(eq(branchStock.branchId, targetBranch), eq(branchStock.productId, item.productId)))
-          .get()!;
+        // Decrement on-hand stock if available
+        if (item.onHandDeduction > 0) {
+          const currentStock = db
+            .select()
+            .from(branchStock)
+            .where(and(eq(branchStock.branchId, targetBranch), eq(branchStock.productId, item.productId)))
+            .get();
 
-        db.update(branchStock)
-          .set({ quantity: Math.max(0, currentStock.quantity - item.quantity) })
-          .where(eq(branchStock.id, currentStock.id))
-          .run();
+          if (currentStock) {
+            db.update(branchStock)
+              .set({ quantity: Math.max(0, currentStock.quantity - item.onHandDeduction) })
+              .where(eq(branchStock.id, currentStock.id))
+              .run();
+          }
+        }
 
         // Log inventory transaction
         db.insert(inventoryTransactions)
@@ -218,7 +235,9 @@ ordersRouter.post('/', authenticateToken, async (req: AuthenticatedRequest, res:
             productName: item.productName,
             fromBranch: targetBranch,
             quantity: item.quantity,
-            note: `Descuento automático por orden de compra ${orderId}`,
+            note: item.isBackorder
+              ? `Orden ${orderId} con ${item.backorderQuantity} un. bajo pedido (${item.onHandDeduction} un. de stock actual)`
+              : `Descuento automático por orden de compra ${orderId}`,
             createdAt: new Date().toISOString(),
           })
           .run();

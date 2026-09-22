@@ -92,6 +92,7 @@ export function initDatabase() {
       shipping_cost INTEGER NOT NULL DEFAULT 0,
       total INTEGER NOT NULL,
       status_history_json TEXT NOT NULL DEFAULT '[]',
+      has_backorder INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL
     );
 
@@ -103,7 +104,8 @@ export function initDatabase() {
       brand TEXT NOT NULL,
       price INTEGER NOT NULL,
       quantity INTEGER NOT NULL,
-      barcode TEXT NOT NULL
+      barcode TEXT NOT NULL,
+      is_backorder INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS inventory_transactions (
@@ -120,4 +122,12 @@ export function initDatabase() {
       created_at TEXT NOT NULL
     );
   `);
+
+  // Safe runtime migrations for existing databases
+  try {
+    sqliteDb.exec(`ALTER TABLE orders ADD COLUMN has_backorder INTEGER NOT NULL DEFAULT 0;`);
+  } catch {}
+  try {
+    sqliteDb.exec(`ALTER TABLE order_items ADD COLUMN is_backorder INTEGER NOT NULL DEFAULT 0;`);
+  } catch {}
 }

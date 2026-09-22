@@ -7,7 +7,8 @@ import {
   MapPin, 
   ShieldCheck, 
   Barcode,
-  Sparkles
+  Sparkles,
+  Clock
 } from 'lucide-react';
 import { CartItem, StoreBranch, StoreBranchId } from '../types';
 import { formatCurrencyARS, calculateInstallments } from '../utils/formatters';
@@ -97,9 +98,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </button>
               </div>
             ) : (
-              items.map(({ product, quantity }) => {
+              items.map(({ product, quantity, isBackorder }) => {
                 const branchStock = product.stockByStore?.[selectedBranchId] ?? 0;
-                const isMaxStock = quantity >= branchStock;
+                const isItemOnDemand = isBackorder || quantity > branchStock || branchStock === 0;
+                const maxQty = 15;
+                const isAtMaxQty = quantity >= maxQty;
 
                 return (
                   <div
@@ -141,6 +144,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           <Barcode className="w-3 h-3 text-[#10A4C7]" />
                           <span>EAN: {product.barcode}</span>
                         </div>
+
+                        {/* Backorder status tag */}
+                        {isItemOnDemand && (
+                          <div className="mt-1 flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-indigo-600" />
+                              <span>Bajo Pedido (3-5 días)</span>
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between pt-2">
@@ -150,11 +163,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                         {/* Quantity buttons */}
                         <div className="flex items-center gap-1">
-                          {isMaxStock && (
-                            <span className="text-[9px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
-                              Máx: {branchStock}
-                            </span>
-                          )}
                           <div className="flex items-center border border-slate-200 rounded-lg bg-white shadow-2xs">
                             <button
                               type="button"
@@ -169,14 +177,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                             </span>
                             <button
                               type="button"
-                              disabled={isMaxStock}
+                              disabled={isAtMaxQty}
                               onClick={() => onUpdateQuantity(product.id, quantity + 1)}
                               className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded-r transition-colors ${
-                                isMaxStock
+                                isAtMaxQty
                                   ? 'text-slate-300 cursor-not-allowed bg-slate-50'
                                   : 'text-slate-600 hover:bg-slate-100 cursor-pointer'
                               }`}
-                              title={isMaxStock ? `Stock máximo alcanzado en sucursal (${branchStock} un.)` : 'Aumentar cantidad'}
+                              title={isAtMaxQty ? 'Límite máximo por pedido alcanzado (15 un.)' : 'Aumentar cantidad'}
                             >
                               +
                             </button>
@@ -193,6 +201,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {/* Footer with Checkout action */}
           {items.length > 0 && (
             <div className="p-6 border-t border-slate-100 bg-slate-50 space-y-4">
+              {/* Backorder notice in footer */}
+              {items.some(
+                (i) =>
+                  i.isBackorder ||
+                  (i.product.stockByStore?.[selectedBranchId] ?? 0) < i.quantity
+              ) && (
+                <div className="p-2.5 bg-indigo-50/80 border border-indigo-200 rounded-xl flex items-start gap-2 text-[11px] text-indigo-950 font-medium">
+                  <Clock className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                  <span>
+                    Tu compra incluye artículos <strong>bajo pedido</strong>. Tiempo estimado de preparación: <strong>3 a 5 días hábiles</strong>.
+                  </span>
+                </div>
+              )}
+
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs text-slate-500">
                   <span>Subtotal productos</span>

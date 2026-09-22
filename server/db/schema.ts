@@ -70,6 +70,7 @@ export const orders = sqliteTable('orders', {
   shippingCost: integer('shipping_cost').notNull().default(0),
   total: integer('total').notNull(),
   statusHistoryJson: text('status_history_json').notNull().default('[]'),
+  hasBackorder: integer('has_backorder', { mode: 'boolean' }).notNull().default(false),
   createdAt: text('created_at').notNull(),
 });
 
@@ -82,6 +83,7 @@ export const orderItems = sqliteTable('order_items', {
   price: integer('price').notNull(),
   quantity: integer('quantity').notNull(),
   barcode: text('barcode').notNull(),
+  isBackorder: integer('is_backorder', { mode: 'boolean' }).notNull().default(false),
 });
 
 export const inventoryTransactions = sqliteTable('inventory_transactions', {
