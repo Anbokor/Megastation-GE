@@ -303,18 +303,6 @@ export const Header: React.FC<HeaderProps> = ({
                         <span>Mis Pedidos & Envíos</span>
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          onOpenLogin();
-                        }}
-                        className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
-                      >
-                        <UserCheck className="w-4 h-4 text-slate-500" />
-                        <span>Cambiar Rol / Usuario (Demo)</span>
-                      </button>
-
                       <div className="my-1 border-t border-slate-100" />
 
                       <button
@@ -353,7 +341,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="relative">
                 <ShoppingCart className="w-5 h-5 text-white" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2.5 bg-[#FFB000] text-slate-950 text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow-xs border-2 border-white animate-bounce">
+                  <span className="absolute -top-2 -right-2.5 bg-[#FFB000] text-slate-950 text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow-xs border-2 border-white">
                     {cartCount}
                   </span>
                 )}

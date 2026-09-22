@@ -185,7 +185,8 @@ export default function App() {
 
   // --- Cart Operations with Inventory Check ---
   const handleAddToCart = (product: Product, quantity: number = 1) => {
-    const availableStock = product.stockByStore[selectedBranchId] ?? 0;
+    const freshProduct = products.find((p) => p.id === product.id) || product;
+    const availableStock = freshProduct.stockByStore?.[selectedBranchId] ?? 0;
     const existingInCart = cart.find((i) => i.product.id === product.id)?.quantity || 0;
 
     if (existingInCart + quantity > availableStock) {
@@ -198,13 +199,15 @@ export default function App() {
     }
 
     setCart((prevCart) => {
-      const existingIndex = prevCart.findIndex((i) => i.product.id === product.id);
+      const existingIndex = prevCart.findIndex((i) => i.product.id === freshProduct.id);
       if (existingIndex > -1) {
-        const updated = [...prevCart];
-        updated[existingIndex].quantity += quantity;
-        return updated;
+        return prevCart.map((item, idx) =>
+          idx === existingIndex
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
       }
-      return [...prevCart, { product, quantity }];
+      return [...prevCart, { product: freshProduct, quantity }];
     });
   };
 
@@ -214,8 +217,8 @@ export default function App() {
       return;
     }
 
-    const prod = products.find((p) => p.id === productId);
-    const availableStock = prod ? (prod.stockByStore[selectedBranchId] ?? 0) : 0;
+    const prod = products.find((p) => p.id === productId) || cart.find((i) => i.product.id === productId)?.product;
+    const availableStock = prod ? (prod.stockByStore?.[selectedBranchId] ?? 0) : 0;
     if (newQty > availableStock) {
       alert(`Stock máximo disponible en sucursal: ${availableStock} unidades.`);
       return;

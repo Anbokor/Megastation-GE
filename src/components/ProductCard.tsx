@@ -26,10 +26,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [added, setAdded] = React.useState(false);
 
   const currentBranchStock = getBranchStockLabel(product, selectedBranchId);
-  const totalStock = Object.values(product.stockByStore).reduce((a, b) => a + b, 0);
+  const totalStock = Object.values(product.stockByStore || {}).reduce((a, b) => a + (b || 0), 0);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (added) return;
     onAddToCart(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
@@ -130,8 +131,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <span>En otra sucursal:</span>
             <span className="font-medium text-slate-600">
               {selectedBranchId === 'belgrano'
-                ? `Colegiales (${product.stockByStore.colegiales} u.)`
-                : `Belgrano (${product.stockByStore.belgrano} u.)`}
+                ? `Colegiales (${product.stockByStore?.colegiales ?? 0} u.)`
+                : `Belgrano (${product.stockByStore?.belgrano ?? 0} u.)`}
             </span>
           </div>
         </div>

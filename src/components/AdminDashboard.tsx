@@ -344,7 +344,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     let lowStockCount = 0;
 
     for (const p of products) {
-      const pTotal = (p.stockByStore.belgrano || 0) + (p.stockByStore.colegiales || 0) + (p.stockByStore.central || 0);
+      const pTotal = (p.stockByStore?.belgrano || 0) + (p.stockByStore?.colegiales || 0) + (p.stockByStore?.central || 0);
       totalUnits += pTotal;
       totalRetailValue += pTotal * p.price;
       totalCostValue += pTotal * (p.costPrice || Math.round(p.price * 0.7));
@@ -611,7 +611,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {branches.map((b) => {
-                  const branchUnits = products.reduce((sum, p) => sum + (p.stockByStore[b.id] || 0), 0);
+                  const branchUnits = products.reduce((sum, p) => sum + (p.stockByStore?.[b.id] || 0), 0);
                   return (
                     <div key={b.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                       <div>
@@ -823,7 +823,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
                   {products.map((p) => {
-                    const totalSt = (p.stockByStore.belgrano || 0) + (p.stockByStore.colegiales || 0) + (p.stockByStore.central || 0);
+                    const totalSt = (p.stockByStore?.belgrano || 0) + (p.stockByStore?.colegiales || 0) + (p.stockByStore?.central || 0);
                     return (
                       <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                         <td className="p-3">
@@ -1029,14 +1029,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <input
                               type="number"
                               min={0}
-                              value={p.stockByStore.belgrano}
+                              value={p.stockByStore?.belgrano ?? 0}
                               onChange={(e) =>
                                 onUpdateProductStock(p.id, 'belgrano', Number(e.target.value))
                               }
                               className="w-14 text-center p-1 bg-slate-50 border border-slate-200 rounded font-bold"
                             />
                           ) : (
-                            <span className="font-bold text-slate-700">{p.stockByStore.belgrano} un.</span>
+                            <span className="font-bold text-slate-700">{p.stockByStore?.belgrano ?? 0} un.</span>
                           )}
                         </td>
 
@@ -1046,14 +1046,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <input
                               type="number"
                               min={0}
-                              value={p.stockByStore.colegiales}
+                              value={p.stockByStore?.colegiales ?? 0}
                               onChange={(e) =>
                                 onUpdateProductStock(p.id, 'colegiales', Number(e.target.value))
                               }
                               className="w-14 text-center p-1 bg-slate-50 border border-slate-200 rounded font-bold"
                             />
                           ) : (
-                            <span className="font-bold text-slate-700">{p.stockByStore.colegiales} un.</span>
+                            <span className="font-bold text-slate-700">{p.stockByStore?.colegiales ?? 0} un.</span>
                           )}
                         </td>
 
@@ -1063,14 +1063,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <input
                               type="number"
                               min={0}
-                              value={p.stockByStore.central}
+                              value={p.stockByStore?.central ?? 0}
                               onChange={(e) =>
                                 onUpdateProductStock(p.id, 'central', Number(e.target.value))
                               }
                               className="w-14 text-center p-1 bg-slate-50 border border-slate-200 rounded font-bold"
                             />
                           ) : (
-                            <span className="font-bold text-slate-700">{p.stockByStore.central} un.</span>
+                            <span className="font-bold text-slate-700">{p.stockByStore?.central ?? 0} un.</span>
                           )}
                         </td>
 

@@ -104,13 +104,13 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
       }
 
       // Branch stock filter
-      if (onlyInStockInSelectedBranch && (product.stockByStore[selectedBranchId] || 0) <= 0) {
+      if (onlyInStockInSelectedBranch && (product.stockByStore?.[selectedBranchId] || 0) <= 0) {
         return false;
       }
 
       // Global stock filter
       if (onlyInStockTotal) {
-        const total = Object.values(product.stockByStore).reduce((a, b) => a + b, 0);
+        const total = Object.values(product.stockByStore || {}).reduce((a, b) => a + (b || 0), 0);
         if (total <= 0) return false;
       }
 

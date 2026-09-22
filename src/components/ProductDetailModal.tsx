@@ -38,11 +38,17 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const [quantity, setQuantity] = React.useState(1);
   const [added, setAdded] = React.useState(false);
 
+  React.useEffect(() => {
+    setQuantity(1);
+    setAdded(false);
+  }, [product?.id]);
+
   if (!product) return null;
 
-  const totalStock = Object.values(product.stockByStore).reduce((a, b) => a + b, 0);
+  const totalStock = Object.values(product.stockByStore || {}).reduce((a, b) => a + (b || 0), 0);
 
   const handleAdd = () => {
+    if (added) return;
     onAddToCart(product, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);

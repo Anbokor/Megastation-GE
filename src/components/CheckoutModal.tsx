@@ -59,16 +59,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   // Customer form state - initialized or populated from logged-in user
   const [customer, setCustomer] = React.useState({
-    fullName: currentUser?.name || 'Ignacio Silva',
-    email: currentUser?.email || 'ignacio.silva@gmail.com',
-    phone: '+54 11 5566-7788',
-    dni: '39.812.445',
-    street: 'Av. Monroe',
-    number: '2840',
-    floorApt: '5 D',
-    city: 'Belgrano, CABA',
+    fullName: currentUser?.name || '',
+    email: currentUser?.email || '',
+    phone: '',
+    dni: '',
+    street: '',
+    number: '',
+    floorApt: '',
+    city: '',
     province: 'Buenos Aires',
-    postalCode: '1428',
+    postalCode: '',
   });
 
   React.useEffect(() => {
@@ -280,6 +280,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       type="text"
                       value={customer.street}
                       onChange={(e) => setCustomer({ ...customer, street: e.target.value })}
+                      placeholder="Ej: Av. Monroe"
                       className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:border-[#10A4C7]"
                     />
                   </div>
@@ -289,6 +290,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       type="text"
                       value={customer.number}
                       onChange={(e) => setCustomer({ ...customer, number: e.target.value })}
+                      placeholder="Ej: 2840"
                       className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:border-[#10A4C7]"
                     />
                   </div>
@@ -298,6 +300,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       type="text"
                       value={customer.floorApt}
                       onChange={(e) => setCustomer({ ...customer, floorApt: e.target.value })}
+                      placeholder="Ej: 5 D"
                       className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:border-[#10A4C7]"
                     />
                   </div>
@@ -307,6 +310,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       type="text"
                       value={customer.city}
                       onChange={(e) => setCustomer({ ...customer, city: e.target.value })}
+                      placeholder="Ej: Belgrano, CABA"
                       className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:border-[#10A4C7]"
                     />
                   </div>
@@ -316,6 +320,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       type="text"
                       value={customer.postalCode}
                       onChange={(e) => setCustomer({ ...customer, postalCode: e.target.value })}
+                      placeholder="Ej: 1428"
                       className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:border-[#10A4C7]"
                     />
                   </div>
@@ -335,6 +340,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     type="text"
                     value={customer.fullName}
                     onChange={(e) => setCustomer({ ...customer, fullName: e.target.value })}
+                    placeholder="Ej: Juan Pérez"
                     className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:border-[#10A4C7]"
                   />
                 </div>
@@ -344,6 +350,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     type="text"
                     value={customer.dni}
                     onChange={(e) => setCustomer({ ...customer, dni: e.target.value })}
+                    placeholder="Ej: 38.123.456"
                     className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:border-[#10A4C7]"
                   />
                 </div>
@@ -353,6 +360,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     type="email"
                     value={customer.email}
                     onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
+                    placeholder="ejemplo@correo.com"
                     className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:border-[#10A4C7]"
                   />
                 </div>
@@ -362,6 +370,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     type="tel"
                     value={customer.phone}
                     onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
+                    placeholder="Ej: +54 11 5566-7788"
                     className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:border-[#10A4C7]"
                   />
                 </div>

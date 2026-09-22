@@ -77,6 +77,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
 
           {/* Cart Items List */}
+          {/* Cart Items List */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {items.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
@@ -85,88 +86,107 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
                 <h3 className="font-bold text-slate-800 text-base">Tu carrito está vacío</h3>
                 <p className="text-xs text-slate-500 max-w-xs">
-                  Explorá nuestro catálogo de smartphones y accesorios para agregar productos.
+                  Explorá nuestro catálogo de smartphones, accesorios y tecnología para agregar productos.
                 </p>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="mt-2 px-5 py-2.5 bg-[#10A4C7] text-white font-bold text-xs rounded-xl hover:bg-[#006899] transition-all shadow-xs"
+                  className="mt-2 px-5 py-2.5 bg-[#10A4C7] text-white font-bold text-xs rounded-xl hover:bg-[#006899] transition-all shadow-xs cursor-pointer"
                 >
                   Ver Catálogo de Productos
                 </button>
               </div>
             ) : (
-              items.map(({ product, quantity }) => (
-                <div
-                  key={product.id}
-                  className="flex gap-3 bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200/70 relative group"
-                >
-                  {/* Thumbnail */}
-                  <div className="w-20 h-20 bg-white rounded-xl p-2 border border-slate-200/80 flex-shrink-0 flex items-center justify-center">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-contain mix-blend-multiply"
-                    />
-                  </div>
+              items.map(({ product, quantity }) => {
+                const branchStock = product.stockByStore?.[selectedBranchId] ?? 0;
+                const isMaxStock = quantity >= branchStock;
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[10px] uppercase font-bold text-slate-400">
-                          {product.brand}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => onRemoveItem(product.id)}
-                          className="text-slate-400 hover:text-rose-600 transition-colors p-1"
-                          title="Eliminar producto"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
-                      <h4 className="font-bold text-xs text-slate-900 line-clamp-1">
-                        {product.name}
-                      </h4>
-
-                      <div className="text-[10px] text-slate-400 font-mono mt-0.5 flex items-center gap-1">
-                        <Barcode className="w-3 h-3 text-[#10A4C7]" />
-                        <span>EAN: {product.barcode}</span>
-                      </div>
+                return (
+                  <div
+                    key={product.id}
+                    className="flex gap-3 bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200/70 relative group"
+                  >
+                    {/* Thumbnail */}
+                    <div className="w-20 h-20 bg-white rounded-xl p-2 border border-slate-200/80 flex-shrink-0 flex items-center justify-center">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-contain mix-blend-multiply"
+                      />
                     </div>
 
-                    <div className="flex items-center justify-between pt-2">
-                      <div className="font-extrabold text-sm text-slate-900">
-                        {formatCurrencyARS(product.price * quantity)}
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] uppercase font-bold text-slate-400">
+                            {product.brand}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onRemoveItem(product.id)}
+                            className="text-slate-400 hover:text-rose-600 transition-colors p-1 cursor-pointer"
+                            title="Eliminar producto"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <h4 className="font-bold text-xs text-slate-900 line-clamp-1">
+                          {product.name}
+                        </h4>
+
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5 flex items-center gap-1">
+                          <Barcode className="w-3 h-3 text-[#10A4C7]" />
+                          <span>EAN: {product.barcode}</span>
+                        </div>
                       </div>
 
-                      {/* Quantity buttons */}
-                      <div className="flex items-center border border-slate-200 rounded-lg bg-white shadow-2xs">
-                        <button
-                          type="button"
-                          onClick={() => onUpdateQuantity(product.id, quantity - 1)}
-                          className="w-6 h-6 flex items-center justify-center text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-l"
-                        >
-                          -
-                        </button>
-                        <span className="w-7 text-center font-bold text-xs text-slate-800">
-                          {quantity}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => onUpdateQuantity(product.id, quantity + 1)}
-                          className="w-6 h-6 flex items-center justify-center text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-r"
-                        >
-                          +
-                        </button>
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="font-extrabold text-sm text-slate-900">
+                          {formatCurrencyARS(product.price * quantity)}
+                        </div>
+
+                        {/* Quantity buttons */}
+                        <div className="flex items-center gap-1">
+                          {isMaxStock && (
+                            <span className="text-[9px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                              Máx: {branchStock}
+                            </span>
+                          )}
+                          <div className="flex items-center border border-slate-200 rounded-lg bg-white shadow-2xs">
+                            <button
+                              type="button"
+                              onClick={() => onUpdateQuantity(product.id, quantity - 1)}
+                              className="w-6 h-6 flex items-center justify-center text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-l cursor-pointer"
+                              title="Reducir cantidad"
+                            >
+                              -
+                            </button>
+                            <span className="w-7 text-center font-bold text-xs text-slate-800">
+                              {quantity}
+                            </span>
+                            <button
+                              type="button"
+                              disabled={isMaxStock}
+                              onClick={() => onUpdateQuantity(product.id, quantity + 1)}
+                              className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded-r transition-colors ${
+                                isMaxStock
+                                  ? 'text-slate-300 cursor-not-allowed bg-slate-50'
+                                  : 'text-slate-600 hover:bg-slate-100 cursor-pointer'
+                              }`}
+                              title={isMaxStock ? `Stock máximo alcanzado en sucursal (${branchStock} un.)` : 'Aumentar cantidad'}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
