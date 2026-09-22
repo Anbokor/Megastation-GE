@@ -52,9 +52,6 @@ import { CheckCircle2, AlertCircle, XCircle, X } from 'lucide-react';
 const AdminDashboard = React.lazy(() =>
   import('./components/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
 );
-const BrandbookModal = React.lazy(() =>
-  import('./components/BrandbookModal').then((m) => ({ default: m.BrandbookModal }))
-);
 const PhysicalStoresModal = React.lazy(() =>
   import('./components/PhysicalStoresModal').then((m) => ({ default: m.PhysicalStoresModal }))
 );
@@ -151,7 +148,6 @@ export default function App() {
   const [isOrderTrackerOpen, setIsOrderTrackerOpen] = React.useState<boolean>(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = React.useState<boolean>(false);
   const [isPhysicalStoresOpen, setIsPhysicalStoresOpen] = React.useState<boolean>(false);
-  const [isBrandbookOpen, setIsBrandbookOpen] = React.useState<boolean>(false);
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = React.useState<boolean>(false);
 
   // Authentication Handlers
@@ -509,16 +505,6 @@ export default function App() {
         </React.Suspense>
       )}
 
-      {/* Brandbook & Brand Identity Showcase Modal (Accessible via Admin Dashboard) */}
-      {isBrandbookOpen && (
-        <React.Suspense fallback={null}>
-          <BrandbookModal
-            isOpen={isBrandbookOpen}
-            onClose={() => setIsBrandbookOpen(false)}
-          />
-        </React.Suspense>
-      )}
-
       {/* Barcode Scanner Modal */}
       {isBarcodeScannerOpen && (
         <React.Suspense fallback={null}>
@@ -550,7 +536,6 @@ export default function App() {
             onCreateProduct={handleCreateProduct}
             onUpdateProduct={handleUpdateProduct}
             onDeleteProduct={handleDeleteProduct}
-            onOpenBrandbookModal={() => setIsBrandbookOpen(true)}
           />
         </React.Suspense>
       )}

@@ -57,7 +57,6 @@ interface AdminDashboardProps {
   onCreateProduct?: (productData: any) => Promise<void>;
   onUpdateProduct?: (id: string, productData: any) => Promise<void>;
   onDeleteProduct?: (id: string) => Promise<void>;
-  onOpenBrandbookModal?: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -74,7 +73,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onCreateProduct,
   onUpdateProduct,
   onDeleteProduct,
-  onOpenBrandbookModal,
 }) => {
   const isSeller = currentUser?.role === 'seller';
   const isAdmin = currentUser?.role === 'admin';
@@ -409,17 +407,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <BrandLogo size="sm" variant="white" layout="horizontal" className="hidden md:inline-flex pr-3 border-r border-slate-700" />
-            {isAdmin && onOpenBrandbookModal && (
-              <button
-                type="button"
-                onClick={onOpenBrandbookModal}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#48FEC1]" />
-                <span>Brandbook</span>
-              </button>
-            )}
+            <BrandLogo size="sm" variant="white" layout="horizontal" className="hidden md:inline-flex" />
             <button
               onClick={onClose}
               className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
