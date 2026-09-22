@@ -20,6 +20,18 @@ import {
   setStoredAuthUser, 
   clearStoredAuthUser 
 } from './data/users';
+import { 
+  apiGetProducts, 
+  apiGetBranches, 
+  apiGetOrders, 
+  apiCreateOrder, 
+  apiInboundStock, 
+  apiTransferStock, 
+  apiAdjustStock, 
+  apiUpdateOrderStatus, 
+  apiGetMe,
+  setAuthToken 
+} from './api/client';
 
 // Components
 import { Header } from './components/Header';
@@ -29,40 +41,30 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
 import { OrderTrackerModal } from './components/OrderTrackerModal';
-import { AdminDashboard } from './components/AdminDashboard';
-import { PhysicalStoresModal } from './components/PhysicalStoresModal';
-import { BrandbookModal } from './components/BrandbookModal';
-import { BarcodeScannerModal } from './components/BarcodeScannerModal';
 import { LoginModal } from './components/LoginModal';
 import { Footer } from './components/Footer';
+import { CheckCircle2, AlertCircle, XCircle, X } from 'lucide-react';
+
+// Code-split heavy admin & utility modals to optimize bundle size
+const AdminDashboard = React.lazy(() =>
+  import('./components/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
+);
+const BrandbookModal = React.lazy(() =>
+  import('./components/BrandbookModal').then((m) => ({ default: m.BrandbookModal }))
+);
+const PhysicalStoresModal = React.lazy(() =>
+  import('./components/PhysicalStoresModal').then((m) => ({ default: m.PhysicalStoresModal }))
+);
+const BarcodeScannerModal = React.lazy(() =>
+  import('./components/BarcodeScannerModal').then((m) => ({ default: m.BarcodeScannerModal }))
+);
 
 export default function App() {
-  // --- Persistent State or Memory State ---
-  const [products, setProducts] = React.useState<Product[]>(() => {
-    const saved = localStorage.getItem('mgst_products');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return INITIAL_PRODUCTS;
-  });
-
-  const [branches] = React.useState<StoreBranch[]>(INITIAL_BRANCHES);
-
-  const [orders, setOrders] = React.useState<Order[]>(() => {
-    const saved = localStorage.getItem('mgst_orders');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return INITIAL_ORDERS;
-  });
+  // --- Live and Persistent State ---
+  const [products, setProducts] = React.useState<Product[]>(INITIAL_PRODUCTS);
+  const [branches, setBranches] = React.useState<StoreBranch[]>(INITIAL_BRANCHES);
+  const [orders, setOrders] = React.useState<Order[]>(INITIAL_ORDERS);
+  const [paymentBanner, setPaymentBanner] = React.useState<{ status: string; orderId: string } | null>(null);
 
   const [cart, setCart] = React.useState<CartItem[]>(() => {
     const saved = localStorage.getItem('mgst_cart');
@@ -76,23 +78,7 @@ export default function App() {
     return [];
   });
 
-  // Save products and orders to localStorage safely
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('mgst_products', JSON.stringify(products));
-    } catch (e) {
-      console.warn('Storage quota exceeded or storage blocked while saving products', e);
-    }
-  }, [products]);
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('mgst_orders', JSON.stringify(orders));
-    } catch (e) {
-      console.warn('Storage quota exceeded or storage blocked while saving orders', e);
-    }
-  }, [orders]);
-
+  // Sync cart to localStorage
   React.useEffect(() => {
     try {
       localStorage.setItem('mgst_cart', JSON.stringify(cart));
@@ -100,6 +86,48 @@ export default function App() {
       console.warn('Storage quota exceeded or storage blocked while saving cart', e);
     }
   }, [cart]);
+
+  // Sync data from SQLite backend API
+  const refreshData = React.useCallback(async () => {
+    try {
+      const [prods, brs] = await Promise.all([
+        apiGetProducts(),
+        apiGetBranches(),
+      ]);
+      if (prods && prods.length > 0) setProducts(prods);
+      if (brs && brs.length > 0) setBranches(brs);
+
+      try {
+        const ords = await apiGetOrders();
+        if (ords) setOrders(ords);
+      } catch {}
+    } catch (e) {
+      console.warn('Backend not ready or running offline mode, using cached data.', e);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    refreshData();
+    apiGetMe().then((user) => {
+      if (user) {
+        setCurrentUser(user);
+        setStoredAuthUser(user);
+      }
+    });
+
+    // Check Mercado Pago redirect query parameters
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const status = params.get('status') || params.get('collection_status');
+      const orderId = params.get('orderId') || params.get('external_reference');
+      if (status && orderId) {
+        setPaymentBanner({ status, orderId });
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    } catch (e) {
+      console.error('Error parsing payment URL params', e);
+    }
+  }, [refreshData]);
 
   // --- Active Branch and User Session ---
   const [selectedBranchId, setSelectedBranchId] = React.useState<StoreBranchId>('belgrano');
@@ -131,9 +159,11 @@ export default function App() {
     if (user.role === 'admin' || user.role === 'seller') {
       setIsAdminDashboardOpen(true);
     }
+    refreshData();
   };
 
   const handleLogout = () => {
+    setAuthToken(null);
     clearStoredAuthUser();
     setCurrentUser(null);
     setIsAdminDashboardOpen(false);
@@ -147,8 +177,20 @@ export default function App() {
     }
   };
 
-  // --- Cart Operations ---
+  // --- Cart Operations with Inventory Check ---
   const handleAddToCart = (product: Product, quantity: number = 1) => {
+    const availableStock = product.stockByStore[selectedBranchId] ?? 0;
+    const existingInCart = cart.find((i) => i.product.id === product.id)?.quantity || 0;
+
+    if (existingInCart + quantity > availableStock) {
+      alert(
+        availableStock === 0
+          ? `Lo sentimos, este artículo no tiene stock disponible en la sucursal seleccionada (${selectedBranchId.toUpperCase()}).`
+          : `No es posible agregar más unidades. Stock disponible en ${selectedBranchId.toUpperCase()}: ${availableStock} un. (ya agregaste ${existingInCart}).`
+      );
+      return;
+    }
+
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex((i) => i.product.id === product.id);
       if (existingIndex > -1) {
@@ -165,6 +207,14 @@ export default function App() {
       handleRemoveCartItem(productId);
       return;
     }
+
+    const prod = products.find((p) => p.id === productId);
+    const availableStock = prod ? (prod.stockByStore[selectedBranchId] ?? 0) : 0;
+    if (newQty > availableStock) {
+      alert(`Stock máximo disponible en sucursal: ${availableStock} unidades.`);
+      return;
+    }
+
     setCart((prev) =>
       prev.map((item) => (item.product.id === productId ? { ...item, quantity: newQty } : item))
     );
@@ -177,131 +227,70 @@ export default function App() {
   const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // --- Order Creation & Stock Deductions ---
-  const handleCreateOrder = (newOrder: Order) => {
-    // 1. Add order to state
-    setOrders((prev) => [newOrder, ...prev]);
-
-    // 2. Decrement stock from the chosen branch if pickup, or central if delivery
-    const targetBranch: StoreBranchId =
-      newOrder.deliveryMethod === 'pickup' && newOrder.branchId
-        ? newOrder.branchId
-        : 'central';
-
-    setProducts((prevProducts) =>
-      prevProducts.map((prod) => {
-        const orderItem = newOrder.items.find((i) => i.productId === prod.id);
-        if (orderItem) {
-          const currentStock = prod.stockByStore[targetBranch] || 0;
-          const updatedStock = Math.max(0, currentStock - orderItem.quantity);
-          return {
-            ...prod,
-            stockByStore: {
-              ...prod.stockByStore,
-              [targetBranch]: updatedStock,
-            },
-          };
-        }
-        return prod;
-      })
-    );
-
-    // 3. Clear cart
-    setCart([]);
+  // --- Order Creation via Server with Atomic Stock Deduction ---
+  const handleCreateOrder = async (orderPayload: any): Promise<Order | null> => {
+    try {
+      const createdOrder = await apiCreateOrder(orderPayload);
+      setOrders((prev) => [createdOrder, ...prev]);
+      setCart([]);
+      await refreshData();
+      return createdOrder;
+    } catch (err: any) {
+      console.error('Order creation error on server:', err);
+      throw err;
+    }
   };
 
   // --- Inbound Stock Invoice Processing (Складские накладные) ---
-  const handleAddInboundStock = (item: InboundInvoiceItem) => {
-    setProducts((prevProducts) =>
-      prevProducts.map((p) => {
-        if (p.id === item.productId) {
-          const currentBranchStock = p.stockByStore[item.targetBranch] || 0;
-          return {
-            ...p,
-            price: item.finalPrice,
-            costPrice: item.costPrice,
-            stockByStore: {
-              ...p.stockByStore,
-              [item.targetBranch]: currentBranchStock + item.quantity,
-            },
-          };
-        }
-        return p;
-      })
-    );
+  const handleAddInboundStock = async (item: InboundInvoiceItem) => {
+    try {
+      await apiInboundStock(item);
+      await refreshData();
+    } catch (e: any) {
+      alert(e.message || 'Error al procesar ingreso de mercadería.');
+    }
   };
 
   // --- Direct Stock Update in Inventory Tab ---
-  const handleUpdateProductStock = (
+  const handleUpdateProductStock = async (
     productId: string,
     branchId: StoreBranchId,
     newQty: number
   ) => {
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.id === productId) {
-          return {
-            ...p,
-            stockByStore: {
-              ...p.stockByStore,
-              [branchId]: Math.max(0, newQty),
-            },
-          };
-        }
-        return p;
-      })
-    );
+    try {
+      await apiAdjustStock(productId, branchId, newQty);
+      await refreshData();
+    } catch (e: any) {
+      alert(e.message || 'Error al actualizar stock.');
+    }
   };
 
   // --- Inter-Branch Stock Transfers ---
-  const handleTransferStock = (
+  const handleTransferStock = async (
     productId: string,
     fromBranch: StoreBranchId,
     toBranch: StoreBranchId,
     qty: number
   ) => {
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.id === productId) {
-          const fromQty = p.stockByStore[fromBranch] || 0;
-          const toQty = p.stockByStore[toBranch] || 0;
-          const actualTransfer = Math.min(fromQty, qty);
-
-          return {
-            ...p,
-            stockByStore: {
-              ...p.stockByStore,
-              [fromBranch]: fromQty - actualTransfer,
-              [toBranch]: toQty + actualTransfer,
-            },
-          };
-        }
-        return p;
-      })
-    );
+    try {
+      await apiTransferStock(productId, fromBranch, toBranch, qty);
+      await refreshData();
+    } catch (e: any) {
+      alert(e.message || 'Error en la transferencia de stock.');
+    }
   };
 
   // --- Order Status Management ---
-  const handleUpdateOrderStatus = (orderId: string, newStatus: any) => {
-    setOrders((prev) =>
-      prev.map((o) => {
-        if (o.id === orderId) {
-          return {
-            ...o,
-            orderStatus: newStatus,
-            statusHistory: [
-              ...o.statusHistory,
-              {
-                status: newStatus,
-                timestamp: new Date().toISOString(),
-                note: `Estado modificado desde el panel de control a: ${newStatus.toUpperCase()}`,
-              },
-            ],
-          };
-        }
-        return o;
-      })
-    );
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: any) => {
+    try {
+      await apiUpdateOrderStatus(orderId, newStatus);
+      try {
+        const ords = await apiGetOrders();
+        setOrders(ords);
+      } catch {}
+    } catch (e: any) {
+      alert(e.message || 'Error al actualizar estado del pedido.');
+    }
   };
 
   return (
@@ -326,6 +315,55 @@ export default function App() {
         onOpenStores={() => setIsPhysicalStoresOpen(true)}
         onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
       />
+
+      {/* Payment Notification Banner (e.g. redirected from Mercado Pago) */}
+      {paymentBanner && (
+        <aside
+          aria-label="Notificación de pago"
+          className={`px-4 py-3 text-sm border-b transition-colors ${
+            paymentBanner.status === 'success' || paymentBanner.status === 'approved'
+              ? 'bg-emerald-950/60 border-emerald-500/30 text-emerald-300'
+              : paymentBanner.status === 'pending'
+              ? 'bg-amber-950/60 border-amber-500/30 text-amber-300'
+              : 'bg-rose-950/60 border-rose-500/30 text-rose-300'
+          }`}
+        >
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              {paymentBanner.status === 'success' || paymentBanner.status === 'approved' ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              ) : paymentBanner.status === 'pending' ? (
+                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+              ) : (
+                <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
+              )}
+              <span className="font-medium">
+                {paymentBanner.status === 'success' || paymentBanner.status === 'approved'
+                  ? `¡Pago recibido con éxito! Tu orden #${paymentBanner.orderId} está confirmada y en preparación.`
+                  : paymentBanner.status === 'pending'
+                  ? `Pago pendiente de acreditación para la orden #${paymentBanner.orderId}. Te notificaremos al confirmarse.`
+                  : `El pago no pudo completarse para la orden #${paymentBanner.orderId}. Puedes reintentar desde el checkout.`}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => setIsOrderTrackerOpen(true)}
+                className="text-xs font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity"
+              >
+                Ver seguimiento
+              </button>
+              <button
+                onClick={() => setPaymentBanner(null)}
+                className="p-1 hover:bg-white/10 rounded transition-colors"
+                title="Cerrar notificación"
+                aria-label="Cerrar notificación"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </aside>
+      )}
 
       {/* Main Page Content */}
       <main className="flex-1">
@@ -401,50 +439,58 @@ export default function App() {
 
       {/* Physical Stores Modal */}
       {isPhysicalStoresOpen && (
-        <PhysicalStoresModal
-          isOpen={isPhysicalStoresOpen}
-          onClose={() => setIsPhysicalStoresOpen(false)}
-          branches={branches}
-          selectedBranchId={selectedBranchId}
-          onSelectBranch={setSelectedBranchId}
-        />
+        <React.Suspense fallback={null}>
+          <PhysicalStoresModal
+            isOpen={isPhysicalStoresOpen}
+            onClose={() => setIsPhysicalStoresOpen(false)}
+            branches={branches}
+            selectedBranchId={selectedBranchId}
+            onSelectBranch={setSelectedBranchId}
+          />
+        </React.Suspense>
       )}
 
       {/* Brandbook & Brand Identity Showcase Modal (Accessible via Admin Dashboard) */}
       {isBrandbookOpen && (
-        <BrandbookModal
-          isOpen={isBrandbookOpen}
-          onClose={() => setIsBrandbookOpen(false)}
-        />
+        <React.Suspense fallback={null}>
+          <BrandbookModal
+            isOpen={isBrandbookOpen}
+            onClose={() => setIsBrandbookOpen(false)}
+          />
+        </React.Suspense>
       )}
 
       {/* Barcode Scanner Modal */}
       {isBarcodeScannerOpen && (
-        <BarcodeScannerModal
-          isOpen={isBarcodeScannerOpen}
-          onClose={() => setIsBarcodeScannerOpen(false)}
-          products={products}
-          selectedBranchId={selectedBranchId}
-          onSelectProduct={(product) => setSelectedProductForDetail(product)}
-          onAddToCart={(product) => handleAddToCart(product)}
-        />
+        <React.Suspense fallback={null}>
+          <BarcodeScannerModal
+            isOpen={isBarcodeScannerOpen}
+            onClose={() => setIsBarcodeScannerOpen(false)}
+            products={products}
+            selectedBranchId={selectedBranchId}
+            onSelectProduct={(product) => setSelectedProductForDetail(product)}
+            onAddToCart={(product) => handleAddToCart(product)}
+          />
+        </React.Suspense>
       )}
 
       {/* Admin / Seller Dashboard Modal */}
       {isAdminDashboardOpen && (
-        <AdminDashboard
-          isOpen={isAdminDashboardOpen}
-          onClose={() => setIsAdminDashboardOpen(false)}
-          currentUser={currentUser}
-          products={products}
-          branches={branches}
-          orders={orders}
-          onUpdateProductStock={handleUpdateProductStock}
-          onTransferStock={handleTransferStock}
-          onAddInboundStock={handleAddInboundStock}
-          onUpdateOrderStatus={handleUpdateOrderStatus}
-          onOpenBrandbookModal={() => setIsBrandbookOpen(true)}
-        />
+        <React.Suspense fallback={null}>
+          <AdminDashboard
+            isOpen={isAdminDashboardOpen}
+            onClose={() => setIsAdminDashboardOpen(false)}
+            currentUser={currentUser}
+            products={products}
+            branches={branches}
+            orders={orders}
+            onUpdateProductStock={handleUpdateProductStock}
+            onTransferStock={handleTransferStock}
+            onAddInboundStock={handleAddInboundStock}
+            onUpdateOrderStatus={handleUpdateOrderStatus}
+            onOpenBrandbookModal={() => setIsBrandbookOpen(true)}
+          />
+        </React.Suspense>
       )}
 
       {/* User Login & Role Switcher Modal */}

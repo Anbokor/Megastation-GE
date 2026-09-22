@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { formatCurrencyARS, formatArgentineDate } from '../utils/formatters';
+import { apiTrackOrder } from '../api/client';
 
 interface OrderTrackerModalProps {
   isOpen: boolean;
@@ -26,20 +27,36 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
 }) => {
   const [searchCode, setSearchCode] = React.useState('');
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(orders[0] || null);
+  const [searchError, setSearchError] = React.useState<string | null>(null);
+  const [isSearching, setIsSearching] = React.useState(false);
 
   if (!isOpen) return null;
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchCode.trim()) return;
-    const found = orders.find(
-      (o) =>
-        o.id.toLowerCase().includes(searchCode.toLowerCase().trim()) ||
-        o.trackingNumber.toLowerCase().includes(searchCode.toLowerCase().trim()) ||
-        o.customer.dni.includes(searchCode.trim())
-    );
-    if (found) {
-      setSelectedOrder(found);
+    setSearchError(null);
+    const clean = searchCode.trim();
+    if (!clean) return;
+
+    setIsSearching(true);
+    try {
+      const order = await apiTrackOrder(clean);
+      setSelectedOrder(order);
+    } catch {
+      // Fallback to local passed orders if offline or not synced
+      const found = orders.find(
+        (o) =>
+          o.id.toLowerCase() === clean.toLowerCase() ||
+          o.trackingNumber.toLowerCase() === clean.toLowerCase()
+      );
+      if (found) {
+        setSelectedOrder(found);
+      } else {
+        setSearchError('No se encontró ninguna orden con el código ingresado.');
+        setSelectedOrder(null);
+      }
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -90,17 +107,25 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                 type="text"
                 value={searchCode}
                 onChange={(e) => setSearchCode(e.target.value)}
-                placeholder="Ingresá N° de orden (ej: MGST-2026-0841), código o DNI..."
+                placeholder="Ingresá N° de orden (ej: MGST-2026-0841) o código de seguimiento..."
                 className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:border-[#10A4C7] focus:ring-2 focus:ring-[#10A4C7]/20"
               />
             </div>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-[#10A4C7] hover:bg-[#006899] text-white font-bold text-xs rounded-xl transition-colors shadow-2xs"
+              disabled={isSearching}
+              className="px-5 py-2.5 bg-[#10A4C7] hover:bg-[#006899] text-white font-bold text-xs rounded-xl transition-colors shadow-2xs disabled:opacity-60 cursor-pointer"
             >
-              Buscar
+              {isSearching ? 'Buscando...' : 'Buscar'}
             </button>
           </form>
+
+          {searchError && (
+            <div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+              <span>{searchError}</span>
+            </div>
+          )}
 
           {/* Quick chip selection of loaded orders */}
           <div className="flex items-center gap-2 mt-3 overflow-x-auto text-[11px] no-scrollbar">

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { AppUser } from '../types';
 import { DEMO_USERS } from '../data/users';
+import { apiLogin } from '../api/client';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -35,14 +36,33 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'quick' | 'form'>('quick');
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   if (!isOpen) return null;
 
-  const handleQuickLogin = (demoUser: AppUser) => {
-    onLoginSuccess(demoUser);
-    onClose();
+  const demoPasswords: Record<string, string> = {
+    'admin@megastation.com': 'admin123',
+    'belgrano@megastation.com': 'belgrano123',
+    'colegiales@megastation.com': 'colegiales123',
+    'martin.gomez@gmail.com': 'customer123',
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleQuickLogin = async (demoUser: AppUser) => {
+    setErrorMsg(null);
+    setIsSubmitting(true);
+    try {
+      const pwd = demoPasswords[demoUser.email.toLowerCase()] || 'password123';
+      const res = await apiLogin(demoUser.email, pwd);
+      onLoginSuccess(res.user);
+      onClose();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error al iniciar sesión');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
@@ -52,24 +72,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       return;
     }
 
-    // Match existing demo user or create a registered customer
-    const foundUser = DEMO_USERS.find((u) => u.email.toLowerCase() === cleanEmail);
-    if (foundUser) {
-      onLoginSuccess(foundUser);
-      onClose();
+    if (!password) {
+      setErrorMsg('Por favor ingresá tu contraseña.');
       return;
     }
 
-    // If new email, register/log in as customer
-    const newCustomer: AppUser = {
-      id: `usr-cust-${Date.now()}`,
-      name: cleanEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      email: cleanEmail,
-      role: 'customer',
-      branchId: 'belgrano',
-    };
-    onLoginSuccess(newCustomer);
-    onClose();
+    setIsSubmitting(true);
+    try {
+      const res = await apiLogin(cleanEmail, password);
+      onLoginSuccess(res.user);
+      onClose();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error al iniciar sesión. Verifique sus credenciales.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -309,8 +326,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-[#10A4C7] focus:ring-2 focus:ring-[#10A4C7]/20 transition-all text-slate-900"
                   />
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  * En modo demostración, la contraseña es libre o podés usar cualquier combinación.
+                <p className="text-[10px] text-slate-500 mt-1">
+                  * Contraseñas de acceso: <code className="text-[#006899] font-bold">admin123</code> (Admin), <code className="text-[#006899] font-bold">belgrano123</code> (Ventas Belgrano), <code className="text-[#006899] font-bold">customer123</code> (Cliente).
                 </p>
               </div>
 

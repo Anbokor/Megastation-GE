@@ -141,13 +141,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             type="button"
             onClick={handleAdd}
-            disabled={totalStock === 0}
+            disabled={currentBranchStock.quantity === 0}
             className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs ${
               added
                 ? 'bg-emerald-600 text-white'
-                : totalStock === 0
-                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                : 'bg-[#10A4C7] hover:bg-[#0e94b4] active:bg-[#006899] text-white hover:shadow-md'
+                : currentBranchStock.quantity === 0
+                ? 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed'
+                : 'bg-[#10A4C7] hover:bg-[#0e94b4] active:bg-[#006899] text-white hover:shadow-md cursor-pointer'
             }`}
           >
             {added ? (
@@ -155,6 +155,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <Check className="w-4 h-4" />
                 <span>¡Agregado!</span>
               </>
+            ) : currentBranchStock.quantity === 0 ? (
+              <span>Sin Stock en Sucursal</span>
             ) : (
               <>
                 <ShoppingCart className="w-4 h-4" />

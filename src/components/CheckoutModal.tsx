@@ -28,6 +28,7 @@ import {
 } from '../types';
 import { formatCurrencyARS, calculateInstallments } from '../utils/formatters';
 import { BrandLogo } from './BrandLogo';
+import { apiCreatePaymentPreference } from '../api/client';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -36,7 +37,7 @@ interface CheckoutModalProps {
   branches: StoreBranch[];
   selectedBranchId: StoreBranchId;
   currentUser?: AppUser | null;
-  onCreateOrder: (order: Order) => void;
+  onCreateOrder: (orderPayload: any) => Promise<Order | null> | void;
   onOrderSuccess: (order: Order) => void;
 }
 
@@ -82,6 +83,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const [createdOrder, setCreatedOrder] = React.useState<Order | null>(null);
   const [formError, setFormError] = React.useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = React.useState(false);
+  const [mercadoPagoUrl, setMercadoPagoUrl] = React.useState<string | null>(null);
 
   // Financial calculations
   const subtotal = items.reduce((acc, i) => acc + i.product.price * i.quantity, 0);
@@ -94,18 +97,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleConfirmOrder = () => {
-    const newOrderId = `MGST-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    const trackingCode = `ARG-MGST-${Math.floor(1000 + Math.random() * 9000)}`;
+  const handleConfirmOrder = async () => {
+    setFormError(null);
+    setIsProcessing(true);
 
-    const newOrder: Order = {
-      id: newOrderId,
-      trackingNumber: trackingCode,
+    const orderPayload = {
       customer: {
-        fullName: customer.fullName,
-        email: customer.email,
-        phone: customer.phone,
-        dni: customer.dni,
+        fullName: customer.fullName.trim(),
+        email: customer.email.trim(),
+        phone: customer.phone.trim(),
+        dni: customer.dni.trim(),
         address:
           deliveryMethod === 'delivery'
             ? {
@@ -120,40 +121,35 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       },
       items: items.map((i) => ({
         productId: i.product.id,
-        productName: i.product.name,
-        brand: i.product.brand,
-        price: i.product.price,
         quantity: i.quantity,
-        barcode: i.product.barcode,
       })),
-      subtotal,
-      discount,
-      shippingCost,
-      total,
       deliveryMethod,
       branchId: deliveryMethod === 'pickup' ? pickupBranchId : undefined,
       paymentMethod,
-      paymentStatus: paymentMethod === 'cash_pickup' ? 'pending' : 'paid',
-      orderStatus: 'pendiente',
-      createdAt: new Date().toISOString(),
-      statusHistory: [
-        {
-          status: 'pendiente',
-          timestamp: new Date().toISOString(),
-          note:
-            paymentMethod === 'mercadopago'
-              ? 'Pago aprobado inmediatamente con Mercado Pago.'
-              : paymentMethod === 'bank_transfer'
-              ? 'Transferencia bancaria ingresada al CBU de Megastation.'
-              : 'Orden confirmada para abonar al retirar.',
-        },
-      ],
     };
 
-    onCreateOrder(newOrder);
-    setCreatedOrder(newOrder);
-    setStep(3);
-    onOrderSuccess(newOrder);
+    try {
+      const result = await onCreateOrder(orderPayload);
+      if (result) {
+        setCreatedOrder(result);
+        if (paymentMethod === 'mercadopago') {
+          try {
+            const pref = await apiCreatePaymentPreference(result.id);
+            if (pref.sandboxInitPoint || pref.initPoint) {
+              setMercadoPagoUrl(pref.sandboxInitPoint || pref.initPoint);
+            }
+          } catch (e) {
+            console.warn('Could not generate preference', e);
+          }
+        }
+        setStep(3);
+        onOrderSuccess(result);
+      }
+    } catch (err: any) {
+      setFormError(err.message || 'Error al procesar la orden en el servidor.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -583,12 +579,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
             </div>
 
+            {formError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
             {/* Confirm button */}
             <div className="pt-2 flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="px-4 py-2.5 text-xs text-slate-600 hover:text-slate-900 font-semibold"
+                disabled={isProcessing}
+                className="px-4 py-2.5 text-xs text-slate-600 hover:text-slate-900 font-semibold cursor-pointer disabled:opacity-50"
               >
                 Volver
               </button>
@@ -596,10 +600,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmOrder}
-                className="px-6 py-3.5 bg-gradient-to-r from-[#10A4C7] to-[#006899] hover:from-[#0e94b4] hover:to-[#005a85] text-white font-extrabold text-sm rounded-xl shadow-lg transition-all flex items-center gap-2 transform active:scale-98"
+                disabled={isProcessing}
+                className="px-6 py-3.5 bg-gradient-to-r from-[#10A4C7] to-[#006899] hover:from-[#0e94b4] hover:to-[#005a85] text-white font-extrabold text-sm rounded-xl shadow-lg transition-all flex items-center gap-2 transform active:scale-98 disabled:opacity-60 cursor-pointer"
               >
                 <Check className="w-5 h-5" />
-                <span>Confirmar y Finalizar Pedido</span>
+                <span>{isProcessing ? 'Procesando con Servidor...' : 'Confirmar y Finalizar Pedido'}</span>
               </button>
             </div>
           </div>
@@ -617,9 +622,31 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 ¡Gracias por tu compra, {createdOrder.customer.fullName}!
               </h3>
               <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                Hemos recibido tu pedido correctamente. Te enviamos el comprobante fiscal y detalles a <strong>{createdOrder.customer.email}</strong>.
+                Hemos recibido tu pedido correctamente en el sistema. Te enviamos el comprobante fiscal y detalles a <strong>{createdOrder.customer.email}</strong>.
               </p>
             </div>
+
+            {/* Mercado Pago Sandbox Checkout Call to Action */}
+            {mercadoPagoUrl && (
+              <div className="p-5 bg-sky-50 border border-sky-200 rounded-2xl max-w-lg mx-auto space-y-2.5 text-left shadow-xs">
+                <div className="flex items-center gap-2 text-xs font-bold text-[#006899]">
+                  <CreditCard className="w-4 h-4 text-[#009EE3]" />
+                  <span>Pasarela Mercado Pago Sandbox Activa</span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Tu orden ya fue registrada. Hacé clic para abrir la pasarela de pago de prueba de Mercado Pago:
+                </p>
+                <a
+                  href={mercadoPagoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#009EE3] hover:bg-[#0089c7] text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>Pagar con Mercado Pago (Modo Sandbox)</span>
+                </a>
+              </div>
+            )}
 
             {/* Receipt Box */}
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-left max-w-lg mx-auto space-y-3 font-mono text-xs shadow-2xs">

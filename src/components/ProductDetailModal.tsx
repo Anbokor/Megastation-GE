@@ -185,54 +185,63 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </div>
 
               {/* Quantity and Add to Cart action */}
-              <div className="pt-2 flex items-center gap-3">
-                <div className="flex items-center border border-slate-200 rounded-xl bg-white p-1">
-                  <button
-                    type="button"
-                    disabled={quantity <= 1}
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40"
-                  >
-                    -
-                  </button>
-                  <span className="w-10 text-center font-bold text-sm text-slate-800">
-                    {quantity}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={quantity >= totalStock}
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40"
-                  >
-                    +
-                  </button>
-                </div>
+              {(() => {
+                const branchStockQty = product.stockByStore[selectedBranchId] ?? 0;
+                const isOutOfStock = branchStockQty === 0;
 
-                <button
-                  type="button"
-                  disabled={totalStock === 0}
-                  onClick={handleAdd}
-                  className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
-                    added
-                      ? 'bg-emerald-600 text-white'
-                      : totalStock === 0
-                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                      : 'bg-[#10A4C7] hover:bg-[#006899] text-white'
-                  }`}
-                >
-                  {added ? (
-                    <>
-                      <Check className="w-5 h-5" />
-                      <span>¡Agregado al Carrito!</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-5 h-5" />
-                      <span>Agregar al Carrito ({quantity})</span>
-                    </>
-                  )}
-                </button>
-              </div>
+                return (
+                  <div className="pt-2 flex items-center gap-3">
+                    <div className="flex items-center border border-slate-200 rounded-xl bg-white p-1">
+                      <button
+                        type="button"
+                        disabled={quantity <= 1 || isOutOfStock}
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+                      >
+                        -
+                      </button>
+                      <span className="w-10 text-center font-bold text-sm text-slate-800">
+                        {isOutOfStock ? 0 : quantity}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={quantity >= branchStockQty || isOutOfStock}
+                        onClick={() => setQuantity(quantity + 1)}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isOutOfStock}
+                      onClick={handleAdd}
+                      className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
+                        added
+                          ? 'bg-emerald-600 text-white'
+                          : isOutOfStock
+                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                          : 'bg-[#10A4C7] hover:bg-[#006899] text-white cursor-pointer'
+                      }`}
+                    >
+                      {added ? (
+                        <>
+                          <Check className="w-5 h-5" />
+                          <span>¡Agregado al Carrito!</span>
+                        </>
+                      ) : isOutOfStock ? (
+                        <span>Agotado en esta sucursal</span>
+                      ) : (
+                        <>
+                          <ShoppingCart className="w-5 h-5" />
+                          <span>Agregar al Carrito ({quantity})</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                );
+              })()}
 
               {/* Purchase advantages */}
               <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 pt-2 border-t border-slate-100">
