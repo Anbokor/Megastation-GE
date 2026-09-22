@@ -95,26 +95,28 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Right side: Branch switcher & Staff quick status */}
           <div className="flex items-center gap-2.5 ml-auto text-[11px]">
-            {/* Live SQLite DB status badge */}
-            <span
-              className={`hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-tight border ${
-                isBackendConnected
-                  ? 'bg-emerald-950/80 text-emerald-300 border-emerald-400/50 shadow-xs'
-                  : 'bg-amber-950/80 text-amber-300 border-amber-400/50'
-              }`}
-              title={
-                isBackendConnected
-                  ? 'Conectado al servidor Express y base de datos relacional SQLite (Drizzle ORM en modo WAL)'
-                  : 'Modo sin conexión - usando catálogo en caché'
-              }
-            >
+            {/* Live SQLite DB status badge - ONLY visible to staff (Admin or Seller) */}
+            {currentUser && (currentUser.role === 'admin' || currentUser.role === 'seller') && (
               <span
-                className={`w-2 h-2 rounded-full ${
-                  isBackendConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                className={`hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-tight border ${
+                  isBackendConnected
+                    ? 'bg-emerald-950/80 text-emerald-300 border-emerald-400/50 shadow-xs'
+                    : 'bg-amber-950/80 text-amber-300 border-amber-400/50'
                 }`}
-              ></span>
-              <span>{isBackendConnected ? 'SQLite Live' : 'Offline'}</span>
-            </span>
+                title={
+                  isBackendConnected
+                    ? 'Conectado al servidor Express y base de datos relacional SQLite (Drizzle ORM en modo WAL)'
+                    : 'Modo sin conexión - usando catálogo en caché'
+                }
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isBackendConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                  }`}
+                ></span>
+                <span>{isBackendConnected ? 'SQLite Live' : 'Offline'}</span>
+              </span>
+            )}
 
             {/* Branch selector */}
             <div className="flex items-center gap-1 bg-black/20 px-2 py-0.5 rounded-md backdrop-blur-xs">

@@ -489,6 +489,7 @@ export default function App() {
           isOpen={isOrderTrackerOpen}
           onClose={() => setIsOrderTrackerOpen(false)}
           orders={orders}
+          currentUser={currentUser}
         />
       )}
 
@@ -553,6 +554,7 @@ export default function App() {
       <Footer
         onOpenStores={() => setIsPhysicalStoresOpen(true)}
         onOpenAdmin={handleOpenAdminDashboard}
+        currentUser={currentUser}
       />
     </div>
   );

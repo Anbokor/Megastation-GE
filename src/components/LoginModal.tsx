@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import { 
   X, 
-  ShieldCheck, 
-  UserCheck, 
-  User, 
   Lock, 
   Mail, 
   ArrowRight, 
-  Store, 
   CheckCircle2, 
   AlertCircle,
   Eye,
@@ -23,13 +19,6 @@ interface LoginModalProps {
   currentUser: AppUser | null;
   onLogout: () => void;
 }
-
-const DEMO_CREDENTIALS = [
-  { role: 'Administrador', email: 'admin@megastation.com', pass: 'admin123', tag: 'Acceso Total', icon: ShieldCheck, color: 'text-amber-500' },
-  { role: 'Vendedor (Belgrano)', email: 'belgrano@megastation.com', pass: 'belgrano123', tag: 'Sucursal Cabildo', icon: Store, color: 'text-sky-500' },
-  { role: 'Vendedor (Colegiales)', email: 'colegiales@megastation.com', pass: 'colegiales123', tag: 'Sucursal Lacroze', icon: Store, color: 'text-sky-500' },
-  { role: 'Cliente', email: 'martin.gomez@gmail.com', pass: 'customer123', tag: 'Comprador', icon: User, color: 'text-emerald-500' },
-];
 
 export const LoginModal: React.FC<LoginModalProps> = ({
   isOpen,
@@ -71,12 +60,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const fillCredentials = (fillEmail: string, fillPass: string) => {
-    setEmail(fillEmail);
-    setPassword(fillPass);
-    setErrorMsg(null);
   };
 
   return (
@@ -203,37 +186,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               )}
             </button>
           </form>
-
-          {/* Test credentials helper - purely fills form fields, no automatic login bypass */}
-          <div className="pt-2 border-t border-slate-100 space-y-2">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Cuentas de prueba (hacé clic para autocompletar):
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              {DEMO_CREDENTIALS.map((cred) => {
-                const Icon = cred.icon;
-                return (
-                  <button
-                    key={cred.email}
-                    type="button"
-                    onClick={() => fillCredentials(cred.email, cred.pass)}
-                    className="p-2 text-left bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 rounded-xl transition-all cursor-pointer group"
-                    title={`Completar: ${cred.email}`}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <Icon className={`w-3.5 h-3.5 ${cred.color}`} />
-                      <span className="text-[11px] font-bold text-slate-800 group-hover:text-[#006899] truncate">
-                        {cred.role}
-                      </span>
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-mono truncate mt-0.5">
-                      {cred.email}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
       </div>
     </div>

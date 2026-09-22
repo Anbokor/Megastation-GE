@@ -12,15 +12,18 @@ import {
   Wrench
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
+import { AppUser } from '../types';
 
 interface FooterProps {
   onOpenStores: () => void;
   onOpenAdmin: () => void;
+  currentUser?: AppUser | null;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onOpenStores,
   onOpenAdmin,
+  currentUser,
 }) => {
   return (
     <footer className="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 mt-16">
@@ -120,16 +123,30 @@ export const Footer: React.FC<FooterProps> = ({
               Aceptamos Mercado Pago, tarjetas de crédito (hasta 6 cuotas sin interés), débito, transferencias inmediatas con 10% OFF y efectivo en mostrador.
             </p>
 
-            <div className="pt-2 border-t border-slate-800">
-              <button
-                type="button"
-                onClick={onOpenAdmin}
-                className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-sky-200 hover:text-white rounded-xl text-xs font-bold transition-colors border border-slate-700 flex items-center justify-center gap-1.5"
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Acceso Administración & POS</span>
-              </button>
-            </div>
+            {currentUser && (currentUser.role === 'admin' || currentUser.role === 'seller') ? (
+              <div className="pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={onOpenAdmin}
+                  className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-sky-200 hover:text-white rounded-xl text-xs font-bold transition-colors border border-slate-700 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Building2 className="w-3.5 h-3.5 text-[#10A4C7]" />
+                  <span>
+                    {currentUser.role === 'admin' ? 'Panel de Administración' : 'Terminal POS'}
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-400 space-y-1">
+                <div className="flex items-center gap-1.5 text-slate-300 font-semibold">
+                  <ShieldCheck className="w-4 h-4 text-[#48FEC1]" />
+                  <span>Compra 100% Protegida</span>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-tight">
+                  Garantía oficial escrita de 12 meses y soporte postventa especializado.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
